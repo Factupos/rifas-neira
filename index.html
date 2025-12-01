@@ -64,8 +64,9 @@ header{
 /* Botón FINALIZAR superior (solo carrito activo) */
 .finish-top-button{
   height:40px;
+  min-height:40px;
   border-radius:999px;
-  padding:0 16px;
+  padding:0 18px;
   font-size:12px;
   font-weight:900;
   letter-spacing:.5px;
@@ -75,8 +76,13 @@ header{
   color:#062017;
   background:linear-gradient(90deg,var(--accent3),var(--accent1));
   box-shadow:0 0 0 1px rgba(255,255,255,.25),0 8px 20px rgba(0,0,0,.45);
-  display:none;
+  display:none;            /* Se mostrará como inline-flex desde JS */
   flex-shrink:0;
+
+  /* Centramos el texto dentro del botón */
+  align-items:center;
+  justify-content:center;
+  line-height:1;
 }
 
 /* Result: cuando hay seleccionado/aleatorio, solo se muestra el elegido */
@@ -123,7 +129,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   gap:8px;
   flex:1;
   overflow-x:auto;
-  padding-bottom:4px;
+  padding:3px 0 4px;   /* Espacio arriba para que el fondo no se pegue al borde superior */
   scroll-snap-type:x mandatory;
 }
 .cart-item{
@@ -146,7 +152,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
 .cart-item::before{
   content:"";
   position:absolute;
-  inset:-2px;
+  inset:-1px; /* Evita que el brillo se pegue demasiado al borde superior */
   border-radius:inherit;
   border:1px solid rgba(255,255,255,.22);
   box-shadow:0 0 18px rgba(0,255,169,.8);
@@ -1047,3 +1053,4 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   </script>
 </body>
 </html>
+
