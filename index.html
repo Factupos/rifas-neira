@@ -61,6 +61,24 @@ header{
 .contact-info{display:flex;flex-direction:row;align-items:center;gap:10px;margin-left:auto}
 .contact-info p{margin:0;font-size:12px;color:#e5ffe8;font-weight:800;letter-spacing:.2px}
 
+/* Botón FINALIZAR superior (solo carrito activo) */
+.finish-top-button{
+  height:40px;
+  border-radius:999px;
+  padding:0 16px;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  border:none;
+  cursor:pointer;
+  color:#062017;
+  background:linear-gradient(90deg,var(--accent3),var(--accent1));
+  box-shadow:0 0 0 1px rgba(255,255,255,.25),0 8px 20px rgba(0,0,0,.45);
+  display:none;
+  flex-shrink:0;
+}
+
 /* Result: cuando hay seleccionado/aleatorio, solo se muestra el elegido */
 .search-result{
   position:fixed; top:calc(var(--vv-top) + var(--extra-top) + var(--header-h) + 12px);
@@ -72,6 +90,106 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
 #raffles{
   display:flex;flex-wrap:wrap;justify-content:center;gap:12px;
   margin:16px auto 28px;max-width:1240px;padding:0 10px 20vh
+}
+
+/* ====== CARRITO DE BOLETAS ====== */
+.cart-panel{
+  display:none;
+  position:relative;
+  z-index:35;
+  margin:8px auto 4px;
+  max-width:1240px;
+  padding:6px 10px 4px;
+  border-radius:14px;
+  background:rgba(0,0,0,.2);
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 10px 26px rgba(0,0,0,.45);
+  align-items:flex-start;
+  gap:8px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.cart-label{
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  padding-top:4px;
+  color:var(--muted);
+  white-space:nowrap;
+}
+.cart-strip{
+  display:flex;
+  gap:8px;
+  flex:1;
+  overflow-x:auto;
+  padding-bottom:4px;
+  scroll-snap-type:x mandatory;
+}
+.cart-item{
+  flex:0 0 auto;
+  min-width:60px;
+  padding:6px 9px;
+  border-radius:999px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255,255,255,.32) 0, transparent 40%),
+    linear-gradient(120deg,var(--accent1),var(--accent2),var(--accent3));
+  box-shadow:0 0 0 1px rgba(255,255,255,.35),0 0 16px rgba(0,0,0,.65);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  position:relative;
+  scroll-snap-align:start;
+  animation:cartPulse 1.5s infinite alternate;
+}
+.cart-item::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:inherit;
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:0 0 18px rgba(0,255,169,.8);
+  opacity:.45;
+  pointer-events:none;
+}
+.cart-item-num{
+  font-size:18px;
+  font-weight:900;
+  text-shadow:0 0 10px rgba(0,0,0,.7);
+}
+.cart-item-remove{
+  border:none;
+  outline:none;
+  cursor:pointer;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  font-weight:900;
+  background:rgba(0,0,0,.6);
+  color:#ffffff;
+  box-shadow:0 0 0 1px rgba(255,255,255,.35),0 0 10px rgba(0,0,0,.8);
+  padding:0;
+}
+
+/* Luz led de pulso para cada boleta del carrito */
+@keyframes cartPulse{
+  0%{
+    box-shadow:0 0 0 1px rgba(255,255,255,.3),0 0 10px rgba(0,255,169,.55);
+    transform:translateY(0) scale(1);
+  }
+  50%{
+    box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 18px rgba(61,183,255,.85);
+    transform:translateY(-1px) scale(1.03);
+  }
+  100%{
+    box-shadow:0 0 0 1px rgba(255,255,255,.28),0 0 22px rgba(255,178,77,.95);
+    transform:translateY(0) scale(1);
+  }
 }
 
 /* Tile */
@@ -127,7 +245,13 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   box-shadow:0 20px 60px rgba(0,0,0,.55); padding:20px 18px; text-align:center; transform-origin:center center
 }
 .q{margin:0 0 10px 0;font-size:clamp(18px,5vw,22px);font-weight:900}
-.actions{display:flex;gap:10px;justify-content:center}
+.actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-top:6px;
+}
 .btn.ok{font-weight:900;border:none;border-radius:14px;padding:12px 18px;cursor:pointer;background:linear-gradient(90deg,var(--accent1),#a9ffdf);color:#062017}
 .btn.no{font-weight:900;border:none;border-radius:14px;padding:12px 18px;cursor:pointer;background:linear-gradient(90deg,#ff6b6b,#ffd0d0);color:#1a0606}
 
@@ -140,6 +264,14 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   .contact-info{flex-direction:row;flex-wrap:wrap;justify-content:center}
   .search-bar,.random-button{width:100%}
   #raffles{gap:10px;margin-top:12px}
+  .cart-panel{
+    margin-top:10px;
+    padding:8px 10px 6px;
+  }
+  .finish-top-button{
+    width:auto;
+    margin-left:auto;
+  }
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
   </style>
@@ -155,9 +287,15 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
     <input id="search" class="search-bar" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="4" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar # de boleta…">
     <button class="random-button" id="randomButton"># ALEATORIO</button>
     <div class="contact-info"><p id="phone"></p><p id="address"></p></div>
+    <!-- Botón Finalizar (carrito activo) -->
+    <button id="finishTop" class="finish-top-button" type="button">Finalizar</button>
   </header>
 
   <div id="searchResult" class="search-result"></div>
+
+  <!-- Carrito de compras (boletas seleccionadas) -->
+  <div id="cartPanel" class="cart-panel" aria-live="polite"></div>
+
   <div id="raffles" aria-live="polite"></div>
 
   <!-- Overlay + Modal -->
@@ -166,6 +304,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
       <p id="q" class="q"></p>
       <div class="actions">
         <button id="yes" class="btn ok" type="button">Sí</button>
+        <button id="keep" class="btn ok" type="button">Seguir separando</button>
         <button id="no" class="btn no" type="button">No</button>
       </div>
     </div>
@@ -256,6 +395,10 @@ let MAP_TIMER = null;
 let MODAL_OPEN = false;
 let DAY_MARK = null;
 
+/* Carrito de compras */
+let CART_ACTIVE = false;
+let CART_ITEMS = [];
+
 /* =========================
    Utils
    ========================= */
@@ -307,12 +450,127 @@ function closeBox(withScale){
     box.style.opacity='1'; box.style.transform='none'; ov.style.backgroundColor='rgba(0,0,0,0.35)';
   });
 }
-function openWA(number){
+
+/* Abrir WhatsApp:
+   - Si recibe string: un solo número (comportamiento original)
+   - Si recibe array: varios números (carrito) */
+function openWA(payload){
   const tel = window.__CONFIG_PHONE_DIGITS || '573206559932';
-  const message = "Hola, estoy interesado en separar este número: " + number;
+  let message = '';
+
+  if (Array.isArray(payload)) {
+    const unique = Array.from(new Set(payload.map(pad4)));
+    if (!unique.length) return;
+    const listado = unique.map((n,idx)=> `${idx+1}. ${n}`).join('\n');
+    message =
+      `Hola, estoy interesado en separar los siguientes números:\n\n` +
+      `${listado}\n\n` +
+      `Total: ${unique.length} número${unique.length>1?'s':''}.\n\n` +
+      `Quedo atento(a) a la confirmación de disponibilidad.`;
+  } else {
+    const number = pad4(payload);
+    message = "Hola, estoy interesado en separar este número: " + number;
+  }
+
   const url = "https://wa.me/" + tel + "?text=" + encodeURIComponent(message);
-  const w = window.open(url, '_blank'); if (!w){ location.href = url; }
+  const w = window.open(url, '_blank');
+  if (!w){ location.href = url; }
 }
+
+/* Carrito: agregar, quitar, renderizar y finalizar */
+function updateTopFinishVisibility(){
+  const btn = document.getElementById('finishTop');
+  if(!btn) return;
+  if (CART_ACTIVE && CART_ITEMS.length){
+    btn.style.display = 'inline-flex';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function renderCart(){
+  const panel = document.getElementById('cartPanel');
+  if(!panel) return;
+  panel.innerHTML = '';
+
+  if(!CART_ITEMS.length){
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'flex';
+
+  const label = document.createElement('div');
+  label.className = 'cart-label';
+  label.textContent = 'Carrito (' + CART_ITEMS.length + ')';
+  panel.appendChild(label);
+
+  const strip = document.createElement('div');
+  strip.className = 'cart-strip';
+  panel.appendChild(strip);
+
+  CART_ITEMS.forEach(num=>{
+    const item = document.createElement('div');
+    item.className = 'cart-item';
+    item.dataset.num = num;
+    item.innerHTML =
+      `<span class="cart-item-num">${num}</span>`+
+      `<button type="button" class="cart-item-remove" aria-label="Quitar ${num}">&times;</button>`;
+    strip.appendChild(item);
+  });
+
+  // Un solo listener por render
+  strip.addEventListener('click', (ev)=>{
+    const btn = ev.target.closest('.cart-item-remove');
+    if(!btn) return;
+    const parent = btn.closest('.cart-item');
+    const num = parent?.dataset.num;
+    if(!num) return;
+    removeFromCart(num);
+  }, {once:true});
+}
+
+function addToCart(n){
+  const num = pad4(n);
+  if (!CART_ITEMS.includes(num)){
+    CART_ITEMS.push(num);
+  }
+  if(!CART_ACTIVE){
+    CART_ACTIVE = true;
+    document.body.classList.add('cart-active');
+  }
+  renderCart();
+  updateTopFinishVisibility();
+}
+
+function removeFromCart(num){
+  const idx = CART_ITEMS.indexOf(num);
+  if(idx>-1){
+    CART_ITEMS.splice(idx,1);
+  }
+  if(!CART_ITEMS.length){
+    CART_ACTIVE = false;
+    document.body.classList.remove('cart-active');
+  }
+  renderCart();
+  updateTopFinishVisibility();
+}
+
+function finalizeCart(){
+  if(!CART_ACTIVE || !CART_ITEMS.length){
+    msg('No hay números en el carrito', true);
+    return;
+  }
+  const unique = Array.from(new Set(CART_ITEMS.map(pad4)));
+  openWA(unique);
+  // Limpiar carrito después de enviar
+  CART_ITEMS = [];
+  CART_ACTIVE = false;
+  document.body.classList.remove('cart-active');
+  renderCart();
+  updateTopFinishVisibility();
+}
+
 function makeTile(num, large){
   const el = document.createElement('div');
   el.className = 'raffle' + (large ? ' large-raffle' : '');
@@ -544,7 +802,7 @@ async function drawTrailFromTileToBox(tile, box, ov, duration=480){
   await animateMs(duration,(p,dt)=>{
     const w=window.innerWidth*dpr, h=window.innerHeight*dpr;
     ctx.clearRect(0,0,w,h);
-    const t=p; // más directo = sensación veloz
+    const t=p;
     const x=(1-t)*(1-t)*sx + 2*(1-t)*t*ctrl.x + t*t*ex;
     const y=(1-t)*(1-t)*sy + 2*(1-t)*t*ctrl.y + t*t*ey;
     const base=Math.max(1.5*dpr, 8*dpr*(1-p));
@@ -569,14 +827,36 @@ async function drawTrailFromTileToBox(tile, box, ov, duration=480){
   cleanup();
 }
 
-/* Modal que “salta” desde la boleta con estela, muy ágil */
+/* Modal que “salta” desde la boleta con estela, ahora con carrito */
 function showChoiceFromTile(tile, n){
   const ov=document.getElementById('ov'), box=document.getElementById('box');
   const yes=document.getElementById('yes'), no=document.getElementById('no'), q=document.getElementById('q');
-  if(!ov||!box||!yes||!no||!q) return;
-  MODAL_OPEN=true; q.textContent="¿Quieres separar este número? " + n;
+  const keep=document.getElementById('keep');
+  if(!ov||!box||!yes||!no||!q||!keep) return;
+
+  MODAL_OPEN=true;
+
+  // Configurar texto y botones según estado del carrito
+  if(!CART_ACTIVE){
+    q.textContent = "¿Quieres separar este número? " + n;
+    yes.style.display = 'inline-block';
+    no.style.display = 'inline-block';
+    keep.style.display = 'inline-block';
+    yes.textContent = 'Sí';
+    no.textContent = 'No';
+    keep.textContent = 'Seguir separando';
+  }else{
+    q.textContent = "Has seleccionado el número " + n;
+    keep.style.display = 'inline-block';
+    yes.style.display = 'inline-block';
+    no.style.display = 'none';
+    keep.textContent = 'Seguir separando';
+    yes.textContent = 'Finalizar';
+  }
+
   ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
   box.style.opacity='0'; box.style.transform='translate(0,0) scale(1)'; box.style.willChange='transform,opacity';
+
   requestAnimationFrame(async ()=>{
     const tr=tile.getBoundingClientRect(), br=box.getBoundingClientRect();
     const tx=tr.left+tr.width/2, ty=tr.top+tr.height/2, bx=br.left+br.width/2, by=br.top+br.height/2;
@@ -586,12 +866,38 @@ function showChoiceFromTile(tile, n){
     const kf=[{transform:`translate(${dx}px,${dy}px) scale(0.26)`,opacity:0},
               {transform:`translate(${dx*0.10}px,${dy*0.10}px) scale(1.06)`,opacity:1,offset:0.66},
               {transform:'translate(0,0) scale(1)',opacity:1}];
-    const a=box.animate(kf,{duration:520,easing:'cubic-bezier(.2,1,.2,1)',fill:'forwards'}); // más “spring”
+    const a=box.animate(kf,{duration:520,easing:'cubic-bezier(.2,1,.2,1)',fill:'forwards'});
     a.onfinish=()=>{box.style.opacity='1'; box.style.transform='none'; box.style.willChange='auto';};
   });
-  yes.onclick=(e)=>{ e.preventDefault(); e.stopPropagation(); closeBox(true); openWA(n); };
-  no.onclick =(e)=>{ e.preventDefault(); e.stopPropagation(); closeBox(false); };
-  ov.onclick =()=> closeBox(false);
+
+  // Listeners de botones según modo
+  yes.onclick = (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    if(CART_ACTIVE){
+      // Agregar este número y finalizar carrito
+      addToCart(n);
+      closeBox(true);
+      finalizeCart();
+    }else{
+      // Comportamiento original: un solo número
+      closeBox(true);
+      openWA(n);
+    }
+  };
+
+  no.onclick = (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    closeBox(false);
+  };
+
+  keep.onclick = (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    // Activar / usar carrito y seguir separando
+    addToCart(n);
+    closeBox(true);
+  };
+
+  ov.onclick = ()=> closeBox(false);
   box.onclick=(e)=> e.stopPropagation();
 }
 
@@ -690,6 +996,15 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     randomBtn.dataset.busy='';
   },{passive:true});
 
+  // Botón FINALIZAR (superior) – solo carrito activo
+  const finishTopBtn = document.getElementById('finishTop');
+  if(finishTopBtn){
+    finishTopBtn.addEventListener('click',(e)=>{
+      e.preventDefault();
+      finalizeCart();
+    });
+  }
+
   // ARRANQUE EXPRESS
   DAY_MARK=todayKey();
   await loadConfigFast();
@@ -721,5 +1036,3 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   </script>
 </body>
 </html>
-
-
