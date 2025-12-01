@@ -95,15 +95,22 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
 /* ====== CARRITO DE BOLETAS ====== */
 .cart-panel{
   display:none;
-  position:relative;
+  /* Se queda “pegado” debajo del header al hacer scroll */
+  position:-webkit-sticky;
+  position:sticky;
+  top:calc(var(--vv-top) + var(--header-h) + 6px);
   z-index:35;
-  margin:8px auto 4px;
+
+  margin:6px auto 4px;
+  width:100%;
   max-width:1240px;
   padding:6px 10px 4px;
   border-radius:14px;
   background:rgba(0,0,0,.2);
   border:1px solid rgba(255,255,255,.2);
   box-shadow:0 10px 26px rgba(0,0,0,.45);
+
+  display:flex;
   align-items:flex-start;
   gap:8px;
   overflow-x:auto;
@@ -1036,3 +1043,4 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   </script>
 </body>
 </html>
+
