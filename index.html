@@ -92,18 +92,11 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   margin:16px auto 28px;max-width:1240px;padding:0 10px 20vh
 }
 
-/* ====== CARRITO DE BOLETAS ====== */
+/* ====== CARRITO DE BOLETAS (dentro del header, siempre estático) ====== */
 .cart-panel{
   display:none;
-  /* Se queda “pegado” debajo del header al hacer scroll */
-  position:-webkit-sticky;
-  position:sticky;
-  top:calc(var(--vv-top) + var(--header-h) + 6px);
-  z-index:35;
-
-  margin:6px auto 4px;
-  width:100%;
-  max-width:1240px;
+  flex:0 0 100%;
+  margin-top:6px;
   padding:6px 10px 4px;
   border-radius:14px;
   background:rgba(0,0,0,.2);
@@ -271,14 +264,6 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   .contact-info{flex-direction:row;flex-wrap:wrap;justify-content:center}
   .search-bar,.random-button{width:100%}
   #raffles{gap:10px;margin-top:12px}
-  .cart-panel{
-    margin-top:10px;
-    padding:8px 10px 6px;
-  }
-  .finish-top-button{
-    width:auto;
-    margin-left:auto;
-  }
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
   </style>
@@ -296,13 +281,12 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
     <div class="contact-info"><p id="phone"></p><p id="address"></p></div>
     <!-- Botón Finalizar (carrito activo) -->
     <button id="finishTop" class="finish-top-button" type="button">Finalizar</button>
+
+    <!-- Carrito de compras (BOLETAS SELECCIONADAS) dentro del header -->
+    <div id="cartPanel" class="cart-panel" aria-live="polite"></div>
   </header>
 
   <div id="searchResult" class="search-result"></div>
-
-  <!-- Carrito de compras (boletas seleccionadas) -->
-  <div id="cartPanel" class="cart-panel" aria-live="polite"></div>
-
   <div id="raffles" aria-live="polite"></div>
 
   <!-- Overlay + Modal -->
@@ -431,7 +415,7 @@ function parseCSV(text){
     else{ if(c==='"'){ inQ=true } else if(c===','){ push() } else if(c==='\n'){ push(); rows.push([]) } else if(c!=='\r'){ cur+=c } }
     i++;
   }
-  push(); return rows.filter(r => r.some(x=>String(x).trim()!==''));
+  push(); return rows.filter(r => r.some(x=>String(x).trim()!=='')); 
 }
 function makeBaseMap(){ const map={}; for(let i=0;i<10000;i++){ map[String(i).padStart(4,'0')]='ocupado' } return map }
 function normStatusAB(s){ const t=String(s??'').trim().toLowerCase(); return t==='libre' ? 'libre' : 'ocupado' }
@@ -442,6 +426,14 @@ function extractColombiaDigits(raw){
   const m3=d.match(/0(3\d{9})/); if(m3) return '57'+m3[1];
   if(d.startsWith('57') && d.length>=12) return d.slice(0,12);
   return null;
+}
+
+/* Recalcular altura del header cuando aparece/desaparece el carrito */
+function recalcHeaderHeightDynamic(){
+  const hEl = document.querySelector('header');
+  if(!hEl) return;
+  const h = Math.max(70, Math.round(hEl.getBoundingClientRect().height));
+  document.documentElement.style.setProperty('--header-h', h + 'px');
 }
 
 /* =========================
@@ -502,6 +494,7 @@ function renderCart(){
 
   if(!CART_ITEMS.length){
     panel.style.display = 'none';
+    recalcHeaderHeightDynamic();
     return;
   }
 
@@ -526,7 +519,7 @@ function renderCart(){
     strip.appendChild(item);
   });
 
-  // Un solo listener por render
+  // Listener sobre el strip para quitar elementos
   strip.addEventListener('click', (ev)=>{
     const btn = ev.target.closest('.cart-item-remove');
     if(!btn) return;
@@ -534,7 +527,9 @@ function renderCart(){
     const num = parent?.dataset.num;
     if(!num) return;
     removeFromCart(num);
-  }, {once:true});
+  });
+
+  recalcHeaderHeightDynamic();
 }
 
 function addToCart(n){
@@ -908,7 +903,7 @@ function showChoiceFromTile(tile, n){
   box.onclick=(e)=> e.stopPropagation();
 }
 
-/* Tap de boleta: ahora conectamos ANTES de que termine el agua (overlap) */
+/* Tap de boleta: conecta efectos y modal */
 function onTileTap(el, num, pt){
   if(!el || el.dataset.busy==='1') return;
   el.dataset.busy='1'; hideMsg();
@@ -920,7 +915,7 @@ function onTileTap(el, num, pt){
   const connectAt  = 680;       // abrimos modal antes de terminar el agua -> sensación continua
 
   // Arranca ondas
-  const ripple = playWaterRipple(el, rippleDur, {x:cx,y:cy})
+  playWaterRipple(el, rippleDur, {x:cx,y:cy})
     .finally(()=>{ el.dataset.busy=''; });
 
   // Conecta con el modal de forma fluida
@@ -931,8 +926,17 @@ function onTileTap(el, num, pt){
    INIT ultrarrápido
    ========================= */
 document.addEventListener('DOMContentLoaded', async ()=>{
-  function updateHeaderPadding(){ const hEl=document.querySelector('header'); if(!hEl) return; const h=Math.max(70,Math.round(hEl.getBoundingClientRect().height)); document.documentElement.style.setProperty('--header-h', h + 'px'); }
-  function applyViewportOffset(){ let top=0; if(window.visualViewport){ top=Math.max(0,Math.round(window.visualViewport.offsetTop||0)); } document.documentElement.style.setProperty('--vv-top', top + 'px'); updateHeaderPadding(); }
+  function updateHeaderPadding(){
+    recalcHeaderHeightDynamic();
+  }
+  function applyViewportOffset(){ 
+    let top=0; 
+    if(window.visualViewport){ 
+      top=Math.max(0,Math.round(window.visualViewport.offsetTop||0)); 
+    } 
+    document.documentElement.style.setProperty('--vv-top', top + 'px'); 
+    updateHeaderPadding(); 
+  }
   updateHeaderPadding(); applyViewportOffset();
   if(window.visualViewport){
     visualViewport.addEventListener('resize',()=>requestAnimationFrame(applyViewportOffset));
@@ -952,7 +956,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   SEARCH_INPUT.addEventListener('input',()=>{ rerenderSearch(); });
   SEARCH_INPUT.addEventListener('blur',()=>{ if(!MODAL_OPEN && SEARCH_INPUT.value.trim().length===0){ document.body.classList.remove('search-has-text'); clearSearchLayer(); } });
 
-  // Botón ALEATORIO — ahora oculta el grid y solo muestra el elegido
+  // Botón ALEATORIO
   const randomBtn=document.getElementById('randomButton');
   randomBtn.addEventListener('click', async ()=>{
     if(randomBtn.dataset.busy==='1') return; randomBtn.dataset.busy='1';
@@ -972,7 +976,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const libres=Object.keys(ALL||{}).filter(k=>ALL[k]==='libre');
     const chosen = libres.length ? libres[randInt(libres.length)] : String(randInt(10000)).padStart(4,'0');
 
-    // Efecto compacto sorpresa (1s) y luego mostrar solo el elegido
+    // Efecto sorpresa y luego mostrar solo el elegido
     const placeholder=document.createElement('div'); placeholder.className='raffle large-raffle'; layer.appendChild(placeholder); layer.style.display='flex';
 
     await (async function playMagicBurst(container, duration=1000){
@@ -1043,4 +1047,3 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   </script>
 </body>
 </html>
-
