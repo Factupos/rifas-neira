@@ -11,15 +11,43 @@
   <style>
 /* ====== BASE UI (ligero y veloz) ====== */
 :root{
-  --bg:#129a3a; --bg-deep:#0e7f30; --ink:#ffffff; --muted:#e5ffe8;
-  --accent1:#00ffa9; --accent2:#3db7ff; --accent3:#ffb24d;
+  /* ====== THEME (edita SOLO aquí para adaptar al logo) ====== */
+  --brand-1:#00E676;   /* Verde neón (principal) */
+  --brand-2:#00C853;   /* Verde esmeralda (secundario) */
+  --brand-3:#B2FF59;   /* Verde lima (brillo) */
+
+  /* Fondo y paneles (verde radiante + premium) */
+  --bg-solid:#03130b;
+  --bg-grad:
+    radial-gradient(1200px 820px at 14% 10%, rgba(0,230,118,.34) 0, transparent 58%),
+    radial-gradient(1100px 760px at 85% 20%, rgba(0,200,83,.28) 0, transparent 60%),
+    radial-gradient(980px 680px at 25% 88%, rgba(178,255,89,.22) 0, transparent 62%),
+    radial-gradient(980px 680px at 78% 86%, rgba(61,183,255,.14) 0, transparent 62%),
+    radial-gradient(980px 680px at 10% 70%, rgba(255,212,77,.12) 0, transparent 62%),
+    linear-gradient(135deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.02) 35%, rgba(255,255,255,.06) 100%),
+    linear-gradient(135deg, #042114 0%, #0a7d3b 45%, #00e676 100%);
+
+  --bg-deep:rgba(2,16,10,.78);  /* header */
+  --ink:#ffffff;
+  --muted:rgba(255,255,255,.86);
+
+  --accent1:var(--brand-2);
+  --accent2:var(--brand-3);
+  --accent3:var(--brand-1);
+
+  --panel:rgba(255,255,255,.14);
+  --panel-strong:rgba(255,255,255,.18);
+  --panel-border:rgba(255,255,255,.22);
+  --shadow:rgba(0,0,0,.35);
+
   --header-h:90px; --vv-top:0px; --extra-top:0px;
 }
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%} html{overflow-anchor:none}
 body{
   margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  color:var(--ink); background:var(--bg);
+  color:var(--ink); background:var(--bg-grad);
   -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   line-height:1.2;
   padding-top:calc(var(--header-h) + var(--vv-top) + var(--extra-top));
@@ -28,7 +56,7 @@ body{
 .top-veil{
   position:fixed; left:0; right:0; top:0; z-index:25; pointer-events:none;
   height:calc(var(--vv-top) + var(--extra-top) + var(--header-h) + 16px);
-  background:linear-gradient(180deg,rgba(14,127,48,.94) 0%,rgba(14,127,48,.88) 40%,rgba(14,127,48,.72) 70%,rgba(14,127,48,0) 100%);
+  background:linear-gradient(180deg, rgba(2,16,10,.90) 0%, rgba(2,16,10,.74) 42%, rgba(2,16,10,.46) 72%, rgba(2,16,10,0) 100%);
   -webkit-backdrop-filter:saturate(120%) blur(6px); backdrop-filter:saturate(120%) blur(6px);
   border-bottom:1px solid rgba(255,255,255,.12);
 }
@@ -36,28 +64,31 @@ header{
   position:fixed; left:0; right:0; z-index:30; top:0 !important;
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:10px 14px; min-height:90px;
-  background:linear-gradient(0deg,rgba(0,0,0,.18),rgba(0,0,0,.18)), var(--bg-deep);
+  background:linear-gradient(0deg,rgba(255,255,255,.08),rgba(255,255,255,.06)), var(--bg-deep);
   border-bottom:1px solid rgba(255,255,255,.12);
   box-shadow:0 10px 26px rgba(0,0,0,.35);
   transform:translateZ(0); -webkit-transform:translateZ(0); backface-visibility:hidden; contain:paint;
 }
 .brand{display:flex;align-items:center;gap:12px}
-.brand img{height:56px;width:56px;object-fit:cover;border-radius:50%;
-  border:2px solid rgba(255,255,255,.2);box-shadow:0 0 0 2px rgba(255,255,255,.18),0 0 22px rgba(0,0,0,.25)}
+.brand img{height:56px;width:56px;object-fit:cover;border-radius:18px;
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 0 0 2px rgba(255,255,255,.14), 0 0 0 6px rgba(255,255,255,.05),
+  0 0 18px rgba(0,230,118,.42), 0 0 18px rgba(0,200,83,.26);}
+.brand img{animation:logoPulse 1.6s ease-in-out infinite alternate;}
+@keyframes logoPulse{from{transform:translateY(0) scale(1);filter:saturate(1.05)}to{transform:translateY(-1px) scale(1.03);filter:saturate(1.18) brightness(1.05)}}
 .brand h1{margin:0;font-weight:900;font-size:clamp(18px,3.2vw,24px);letter-spacing:.5px;
   background:linear-gradient(90deg,#fff,var(--accent2) 50%,var(--accent1) 90%);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .search-bar{
-  flex:1 1 320px;height:56px;border-radius:16px;border:1px solid rgba(255,255,255,.22);
-  padding:0 14px;font-size:20px;line-height:56px;outline:none;background:#0f3c1e;color:#f6fff7;
+  flex:1 1 320px;height:56px;border-radius:16px;border:1px solid var(--panel-border);
+  padding:0 14px;font-size:20px;line-height:56px;outline:none;background:var(--panel);color:var(--ink);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),0 8px 20px rgba(0,0,0,.25);
   touch-action:manipulation;caret-color:#ffffff;-webkit-appearance:none;appearance:none;scroll-margin-top:14vh
 }
-.search-bar::placeholder{color:rgba(235,255,240,.8)}
-.search-bar:focus{box-shadow:inset 0 0 0 2px var(--accent2),0 0 16px rgba(61,183,255,.45)}
+.search-bar::placeholder{color:rgba(255,255,255,.78)}
+.search-bar:focus{box-shadow:inset 0 0 0 2px var(--accent1),0 0 20px rgba(255,255,255,.16),0 0 24px rgba(0,230,118,.38)}
 .random-button{
-  height:56px;border-radius:16px;padding:0 16px;font-weight:900;letter-spacing:.5px;border:none;cursor:pointer;color:#062017;
-  background:linear-gradient(90deg,var(--accent1),#a9ffdf)
+  height:56px;border-radius:16px;padding:0 16px;font-weight:900;letter-spacing:.5px;border:none;cursor:pointer;color:#071d13;background:linear-gradient(90deg,var(--accent3),var(--accent2),var(--accent1))
 }
 .contact-info{display:flex;flex-direction:row;align-items:center;gap:10px;margin-left:auto}
 .contact-info p{margin:0;font-size:12px;color:#e5ffe8;font-weight:800;letter-spacing:.2px}
@@ -183,11 +214,11 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
     transform:translateY(0) scale(1);
   }
   50%{
-    box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 18px rgba(61,183,255,.85);
+    box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 18px rgba(178,255,89,.85);
     transform:translateY(-1px) scale(1.03);
   }
   100%{
-    box-shadow:0 0 0 1px rgba(255,255,255,.28),0 0 22px rgba(255,178,77,.95);
+    box-shadow:0 0 0 1px rgba(255,255,255,.28),0 0 22px rgba(255,178,77,.55);
     transform:translateY(0) scale(1);
   }
 }
@@ -203,7 +234,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
     radial-gradient(circle at 37% 42%, rgba(255,255,255,.10) 0 18%, transparent 19%),
     radial-gradient(circle at 63% 42%, rgba(255,255,255,.10) 0 18%, transparent 19%),
     linear-gradient(145deg, transparent 0 62%, rgba(255,255,255,.10) 63%, transparent 64%),
-    linear-gradient(160deg,#0b2b15,#0a2412 60%);
+    linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,.06) 60%);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.10),0 10px 26px rgba(0,0,0,.35);
   outline:none;cursor:pointer;border:none;transform:translateZ(0)
 }
@@ -227,9 +258,8 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   z-index:60;box-shadow:0 12px 30px rgba(0,0,0,.35)
 }
 .message.error{background:#ff3b30;border-color:#ffd0d0;color:#fff}
-.loading-message{
-  position:fixed;top:44%;left:50%;transform:translate(-50%,-50%);
-  background:#0f3c1e;color:#eaffea;border:1px solid rgba(255,255,255,.35);
+.loading-message{position:fixed;top:44%;left:50%;transform:translate(-50%,-50%);
+  background:rgba(2,16,10,.55);color:rgba(255,255,255,.92);border:1px solid var(--panel-border);
   border-radius:14px;padding:16px 18px;text-align:center;font-size:clamp(18px,5vw,24px);
   display:none;box-shadow:0 12px 30px rgba(0,0,0,.35);z-index:40
 }
@@ -239,9 +269,8 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   z-index:9000; display:none; align-items:center; justify-content:center
 }
 .ov.show{display:flex}
-.box{
-  display:block; min-width:min(92vw,520px); max-width:92vw;
-  background:#0f3c1e;color:#fff; border-radius:20px; border:1px solid rgba(255,255,255,.18);
+.box{display:block; min-width:min(92vw,520px); max-width:92vw;
+  background:rgba(2,16,10,.58);color:#fff; border-radius:22px; border:1px solid var(--panel-border);
   box-shadow:0 20px 60px rgba(0,0,0,.55); padding:20px 18px; text-align:center; transform-origin:center center
 }
 .q{margin:0 0 10px 0;font-size:clamp(18px,5vw,22px);font-weight:900}
@@ -267,12 +296,12 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   align-items:center;
   justify-content:center;
   padding:22px 14px;
-  color:#f3fff6;
+  color:rgba(255,255,255,.94);
   background:
-    radial-gradient(1100px 760px at 10% 10%, rgba(0,255,169,.22) 0, transparent 55%),
-    radial-gradient(900px 640px at 85% 20%, rgba(61,183,255,.24) 0, transparent 58%),
-    radial-gradient(800px 520px at 30% 80%, rgba(255,178,77,.18) 0, transparent 58%),
-    linear-gradient(135deg, #0b3a1c 0%, #0f6a2b 40%, #0b3a1c 100%);
+    radial-gradient(1100px 760px at 12% 12%, rgba(0,230,118,.30) 0, transparent 60%),
+    radial-gradient(1000px 720px at 86% 22%, rgba(0,200,83,.24) 0, transparent 62%),
+    radial-gradient(900px 620px at 26% 86%, rgba(178,255,89,.18) 0, transparent 62%),
+    linear-gradient(135deg, #042114 0%, #0a7d3b 40%, #00e676 100%);
   overflow:hidden;
 }
 .boot.show{display:flex}
@@ -280,7 +309,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   content:"";
   position:absolute; inset:-40%;
   background:
-    conic-gradient(from 90deg, rgba(0,255,169,.25), rgba(61,183,255,.22), rgba(255,178,77,.20), rgba(0,255,169,.25));
+    conic-gradient(from 90deg, rgba(0,255,169,.25), rgba(61,183,255,.18), rgba(255,178,77,.16), rgba(0,255,169,.25));
   filter:blur(18px);
   animation:bootSpin 6.5s linear infinite;
   opacity:.55;
@@ -300,7 +329,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   width:min(560px, 92vw);
   border-radius:24px;
   padding:18px 16px 16px;
-  background:rgba(15,60,30,.65);
+  background:rgba(2,16,10,.52);
   border:1px solid rgba(255,255,255,.18);
   box-shadow:0 30px 90px rgba(0,0,0,.55);
   backdrop-filter:blur(10px) saturate(125%);
@@ -312,7 +341,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   width:54px; height:54px; border-radius:16px;
   background:
     radial-gradient(circle at 20% 20%, rgba(255,255,255,.35) 0, transparent 45%),
-    linear-gradient(135deg, rgba(0,255,169,.9), rgba(61,183,255,.85), rgba(255,178,77,.8));
+    linear-gradient(135deg, rgba(0,230,118,.95), rgba(0,255,169,.85), rgba(178,255,89,.78));
   box-shadow:0 0 0 2px rgba(255,255,255,.18), 0 0 26px rgba(0,255,169,.25);
   display:flex; align-items:center; justify-content:center;
   overflow:hidden;
@@ -402,15 +431,15 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   justify-content:center;
   background:
     radial-gradient(900px 640px at 50% 10%, rgba(255,59,48,.18) 0, transparent 60%),
-    radial-gradient(900px 640px at 30% 90%, rgba(255,178,77,.16) 0, transparent 60%),
-    linear-gradient(135deg, #0a1e12 0%, #0f3c1e 45%, #08150d 100%);
+    radial-gradient(900px 640px at 20% 90%, rgba(178,255,89,.14) 0, transparent 62%),
+    radial-gradient(1000px 720px at 80% 85%, rgba(0,230,118,.12) 0, transparent 65%),
+    linear-gradient(135deg, #03130b 0%, #0a3b22 45%, #02100a 100%);
 }
 .blocked.show{display:flex}
-.blockCard{
-  width:min(620px, 94vw);
+.blockCard{width:min(620px, 94vw);
   border-radius:26px;
   padding:18px 16px 16px;
-  background:rgba(0,0,0,.28);
+  background:rgba(2,16,10,.52);
   border:1px solid rgba(255,255,255,.16);
   box-shadow:0 30px 90px rgba(0,0,0,.6);
   backdrop-filter:blur(10px) saturate(125%);
@@ -496,7 +525,8 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   #raffles{gap:10px;margin-top:12px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
-  </style>
+</style>
+
 </head>
 
 <body>
@@ -582,7 +612,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
    ========================================================= */
 const KEY = '1MyOkJrGpeY1ZXQVFq_srndALEh6Nzzir8sFSfu-0EVM';
 const GID_RAFFLES = '1661037065';   // A: Número, B: Libre/Asignado
-const GID_CONFIG  = '856149436';    // Config_Publica
+const GID_CONFIG  = '1842804307';    // Config_Publica
 const GID_NOTIFICATIONS = '1029797655'; // Notificaciones (logo)
 const PROXY = 'https://csv-proxy.jeisendigital.workers.dev/?u=';
 
@@ -596,62 +626,131 @@ const BLOCK_CELL_RANGE = 'X2:X2';
 const LOGO_CELL_RANGE  = 'D2:D2';   // ← si tu logo está en otra fila, cambia aquí (ej: D3:D3)
 
 /* =========================
-   RENDIMIENTO: caché local
+   RENDIMIENTO: caché local (AISLADO por página/hoja)
    ========================= */
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
-const MAP_CACHE_KEY = 'raffle_map_v3';
-const CONF_CACHE_KEY = 'raffle_conf_v1';
-const LOGO_CACHE_KEY = 'raffle_logo_v1';
-const BLOCK_CACHE_KEY = 'raffle_block_v1';
+
+// Namespace único por página + spreadsheet + gids (evita mezclar caché entre páginas)
+const CACHE_NS = (() => {
+  const base = `${location.origin}${location.pathname}|${KEY}|${GID_RAFFLES}|${GID_CONFIG}|${GID_NOTIFICATIONS}`;
+  let h = 2166136261; // FNV-1a
+  for (let i = 0; i < base.length; i++) {
+    h ^= base.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return `raffle_${(h >>> 0).toString(16)}`;
+})();
+
+// Metadatos para validar que un caché corresponde a esta misma página/hoja
+const CACHE_META = Object.freeze({
+  KEY,
+  GID_RAFFLES,
+  GID_CONFIG,
+  GID_NOTIFICATIONS,
+  path: location.pathname
+});
+
+const MAP_CACHE_KEY   = `${CACHE_NS}_map_v3`;
+const CONF_CACHE_KEY  = `${CACHE_NS}_conf_v1`;
+const LOGO_CACHE_KEY  = `${CACHE_NS}_logo_v1`;
+const BLOCK_CACHE_KEY = `${CACHE_NS}_block_v1`;
+
+// Daily también debe ser por página (no solo por fecha)
+function dailyKey(){ return `${CACHE_NS}_daily_${todayKey()}`; }
+
+function cacheMetaOK(meta){
+  return !!meta && meta.KEY===KEY && meta.GID_RAFFLES===GID_RAFFLES && meta.GID_CONFIG===GID_CONFIG && meta.GID_NOTIFICATIONS===GID_NOTIFICATIONS && meta.path===location.pathname;
+}
+
 
 function saveMapCache(freeList){
-  try{ localStorage.setItem(MAP_CACHE_KEY, JSON.stringify({ts:Date.now(), freeList})) }catch(_){}
+  try{
+    localStorage.setItem(
+      MAP_CACHE_KEY,
+      JSON.stringify({ ts: Date.now(), meta: CACHE_META, freeList })
+    );
+  }catch(_){}
 }
 function loadMapCache(){
   try{
     const raw = localStorage.getItem(MAP_CACHE_KEY);
     if(!raw) return null;
-    const {ts, freeList} = JSON.parse(raw);
+
+    const { ts, meta, freeList } = JSON.parse(raw);
+    if(!cacheMetaOK(meta)) return null;
     if(!Array.isArray(freeList)) return null;
-    if(Date.now() - ts > CACHE_TTL_MS) return {freeList, stale:true};
-    return {freeList, stale:false};
-  }catch(_){ return null; }
+
+    if(Date.now() - ts > CACHE_TTL_MS) return { freeList, stale: true };
+    return { freeList, stale: false };
+  }catch(_){
+    return null;
+  }
 }
 function saveConfCache(conf){
-  try{ localStorage.setItem(CONF_CACHE_KEY, JSON.stringify({ts:Date.now(), conf})) }catch(_){}
+  try{
+    localStorage.setItem(
+      CONF_CACHE_KEY,
+      JSON.stringify({ ts: Date.now(), meta: CACHE_META, conf })
+    );
+  }catch(_){}
 }
 function loadConfCache(){
   try{
     const raw = localStorage.getItem(CONF_CACHE_KEY);
     if(!raw) return null;
-    const {ts, conf} = JSON.parse(raw);
+
+    const { ts, meta, conf } = JSON.parse(raw);
+    if(!cacheMetaOK(meta)) return null;
     if(!conf) return null;
-    return {conf, stale:(Date.now()-ts) > CACHE_TTL_MS};
-  }catch(_){ return null; }
+
+    return { conf, stale: (Date.now() - ts) > CACHE_TTL_MS };
+  }catch(_){
+    return null;
+  }
 }
 function saveLogoCache(logo){
-  try{ localStorage.setItem(LOGO_CACHE_KEY, JSON.stringify({ts:Date.now(), logo})) }catch(_){}
+  try{
+    localStorage.setItem(
+      LOGO_CACHE_KEY,
+      JSON.stringify({ ts: Date.now(), meta: CACHE_META, logo })
+    );
+  }catch(_){}
 }
 function loadLogoCache(){
   try{
     const raw = localStorage.getItem(LOGO_CACHE_KEY);
     if(!raw) return null;
-    const {ts, logo} = JSON.parse(raw);
+
+    const { ts, meta, logo } = JSON.parse(raw);
+    if(!cacheMetaOK(meta)) return null;
     if(!logo) return null;
-    return {logo, stale:(Date.now()-ts) > CACHE_TTL_MS};
-  }catch(_){ return null; }
+
+    return { logo, stale: (Date.now() - ts) > CACHE_TTL_MS };
+  }catch(_){
+    return null;
+  }
 }
 function saveBlockCache(isBlocked){
-  try{ localStorage.setItem(BLOCK_CACHE_KEY, JSON.stringify({ts:Date.now(), isBlocked:!!isBlocked})) }catch(_){}
+  try{
+    localStorage.setItem(
+      BLOCK_CACHE_KEY,
+      JSON.stringify({ ts: Date.now(), meta: CACHE_META, isBlocked: !!isBlocked })
+    );
+  }catch(_){}
 }
 function loadBlockCache(){
   try{
     const raw = localStorage.getItem(BLOCK_CACHE_KEY);
     if(!raw) return null;
-    const {ts, isBlocked} = JSON.parse(raw);
+
+    const { ts, meta, isBlocked } = JSON.parse(raw);
+    if(!cacheMetaOK(meta)) return null;
     if(typeof isBlocked !== 'boolean') return null;
-    return {isBlocked, stale:(Date.now()-ts) > (2*60*1000)}; // bloque se refresca más seguido (2 min)
-  }catch(_){ return null; }
+
+    return { isBlocked, stale: (Date.now() - ts) > (2 * 60 * 1000) }; // 2 min
+  }catch(_){
+    return null;
+  }
 }
 
 /* =========================
@@ -1135,14 +1234,18 @@ function sampleDailyFromFreeList(freeList, target=240){
   }
   return out;
 }
-function persistDaily(){ const key='daily_'+todayKey(); try{ localStorage.setItem(key, JSON.stringify(DAILY||[])) }catch(_){ } }
+function persistDaily(){
+  const key = dailyKey();
+  try{ localStorage.setItem(key, JSON.stringify(DAILY||[])) }catch(_){}
+}
 function loadDailyFromCache(){
-  const key='daily_'+todayKey();
+  const key = dailyKey();
   try{
-    const cached = JSON.parse(localStorage.getItem(key)||'[]');
-    if(Array.isArray(cached)&&cached.length){
-      DAILY = cached.filter(n => ALL[n]==='libre');
-      persistDaily(); return DAILY.length>0;
+    const cached = JSON.parse(localStorage.getItem(key) || '[]');
+    if(Array.isArray(cached) && cached.length){
+      DAILY = cached.filter(n => ALL[n] === 'libre');
+      persistDaily();
+      return DAILY.length > 0;
     }
   }catch(_){}
   return false;
