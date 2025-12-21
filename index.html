@@ -7,6 +7,7 @@
   <!-- Performance -->
   <link rel="preconnect" href="https://docs.google.com" crossorigin>
   <link rel="preconnect" href="https://csv-proxy.jeisendigital.workers.dev" crossorigin>
+
   <style>
 /* ====== BASE UI (ligero y veloz) ====== */
 :root{
@@ -63,23 +64,18 @@ header{
 
 /* Botón FINALIZAR superior (solo carrito activo) */
 .finish-top-button{
-  height:40px;
-  min-height:40px;
+  height:40px; min-height:40px;
   border-radius:999px;
   padding:0 18px;
-  font-size:12px;
-  font-weight:900;
+  font-size:12px; font-weight:900;
   letter-spacing:.5px;
   text-transform:uppercase;
-  border:none;
-  cursor:pointer;
+  border:none; cursor:pointer;
   color:#062017;
   background:linear-gradient(90deg,var(--accent3),var(--accent1));
   box-shadow:0 0 0 1px rgba(255,255,255,.25),0 8px 20px rgba(0,0,0,.45);
-  display:none;            /* Se mostrará como inline-flex desde JS */
+  display:none;
   flex-shrink:0;
-
-  /* Centramos el texto dentro del botón */
   align-items:center;
   justify-content:center;
   line-height:1;
@@ -129,7 +125,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   gap:8px;
   flex:1;
   overflow-x:auto;
-  padding:3px 0 4px;   /* Espacio arriba para que el fondo no se pegue al borde superior */
+  padding:3px 0 4px;
   scroll-snap-type:x mandatory;
 }
 .cart-item{
@@ -152,7 +148,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
 .cart-item::before{
   content:"";
   position:absolute;
-  inset:-1px; /* Evita que el brillo se pegue demasiado al borde superior */
+  inset:-1px;
   border-radius:inherit;
   border:1px solid rgba(255,255,255,.22);
   box-shadow:0 0 18px rgba(0,255,169,.8);
@@ -181,8 +177,6 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   box-shadow:0 0 0 1px rgba(255,255,255,.35),0 0 10px rgba(0,0,0,.8);
   padding:0;
 }
-
-/* Luz led de pulso para cada boleta del carrito */
 @keyframes cartPulse{
   0%{
     box-shadow:0 0 0 1px rgba(255,255,255,.3),0 0 10px rgba(0,255,169,.55);
@@ -265,6 +259,236 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
 .raffle.revealed span{animation:revealPop .6s cubic-bezier(.2,.9,.2,1)}
 @keyframes revealPop{0%{transform:scale(.9);filter:brightness(1.25);text-shadow:0 0 18px rgba(255,255,255,.55),0 0 30px rgba(0,255,169,.28)}55%{transform:scale(1.05)}100%{transform:scale(1);filter:none}}
 
+/* ====== BOOT / LOADING ULTRA PRO ====== */
+.boot{
+  position:fixed; inset:0;
+  z-index:99999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:22px 14px;
+  color:#f3fff6;
+  background:
+    radial-gradient(1100px 760px at 10% 10%, rgba(0,255,169,.22) 0, transparent 55%),
+    radial-gradient(900px 640px at 85% 20%, rgba(61,183,255,.24) 0, transparent 58%),
+    radial-gradient(800px 520px at 30% 80%, rgba(255,178,77,.18) 0, transparent 58%),
+    linear-gradient(135deg, #0b3a1c 0%, #0f6a2b 40%, #0b3a1c 100%);
+  overflow:hidden;
+}
+.boot.show{display:flex}
+.boot::before{
+  content:"";
+  position:absolute; inset:-40%;
+  background:
+    conic-gradient(from 90deg, rgba(0,255,169,.25), rgba(61,183,255,.22), rgba(255,178,77,.20), rgba(0,255,169,.25));
+  filter:blur(18px);
+  animation:bootSpin 6.5s linear infinite;
+  opacity:.55;
+}
+@keyframes bootSpin{to{transform:rotate(1turn)}}
+.boot::after{
+  content:"";
+  position:absolute; inset:0;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 2px, transparent 2px 10px);
+  opacity:.10;
+  mix-blend-mode:overlay;
+  pointer-events:none;
+}
+.bootCard{
+  position:relative;
+  width:min(560px, 92vw);
+  border-radius:24px;
+  padding:18px 16px 16px;
+  background:rgba(15,60,30,.65);
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 30px 90px rgba(0,0,0,.55);
+  backdrop-filter:blur(10px) saturate(125%);
+}
+.bootTop{
+  display:flex; align-items:center; gap:12px;
+}
+.bootLogo{
+  width:54px; height:54px; border-radius:16px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,.35) 0, transparent 45%),
+    linear-gradient(135deg, rgba(0,255,169,.9), rgba(61,183,255,.85), rgba(255,178,77,.8));
+  box-shadow:0 0 0 2px rgba(255,255,255,.18), 0 0 26px rgba(0,255,169,.25);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+.bootLogo img{width:100%;height:100%;object-fit:cover;opacity:.92}
+.bootTitle{
+  margin:0;
+  font-weight:1000;
+  font-size:clamp(18px, 4.8vw, 22px);
+  letter-spacing:.4px;
+  line-height:1.1;
+  background:linear-gradient(90deg,#fff,var(--accent2) 50%, var(--accent1));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.bootSub{
+  margin:3px 0 0 0;
+  font-size:13px;
+  opacity:.9;
+  font-weight:700;
+}
+.bootMeter{
+  margin-top:14px;
+  height:14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.12);
+  overflow:hidden;
+  position:relative;
+}
+.bootBar{
+  height:100%;
+  width:18%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3));
+  box-shadow:0 0 18px rgba(0,255,169,.35);
+  transition:width .35s cubic-bezier(.2,1,.2,1);
+}
+.bootGlow{
+  position:absolute; inset:-30%;
+  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.18) 0, transparent 55%);
+  filter:blur(10px);
+  animation:bootGlow 1.8s ease-in-out infinite alternate;
+  opacity:.7;
+}
+@keyframes bootGlow{to{transform:translateX(10px) translateY(-6px);opacity:.95}}
+.bootMsg{
+  margin:12px 0 0;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.2px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.dotPulse{
+  width:12px; height:12px; border-radius:999px;
+  background:rgba(0,255,169,.95);
+  box-shadow:0 0 16px rgba(0,255,169,.55), 0 0 26px rgba(61,183,255,.28);
+  animation:dotPulse 1.1s ease-in-out infinite;
+}
+@keyframes dotPulse{
+  0%{transform:scale(.82);opacity:.65}
+  55%{transform:scale(1.12);opacity:1}
+  100%{transform:scale(.86);opacity:.72}
+}
+.bootHint{
+  margin:10px 0 0;
+  font-size:12px;
+  opacity:.85;
+  font-weight:750;
+  line-height:1.35;
+}
+.boot.hide{
+  animation:bootOut .42s ease-in forwards;
+}
+@keyframes bootOut{
+  to{opacity:0; transform:translateY(-6px); filter:blur(2px); pointer-events:none}
+}
+
+/* ====== BLOQUEADO (si Configuracion!X2 = TRUE) ====== */
+.blocked{
+  position:fixed; inset:0;
+  z-index:99998;
+  display:none;
+  padding:20px 14px;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(900px 640px at 50% 10%, rgba(255,59,48,.18) 0, transparent 60%),
+    radial-gradient(900px 640px at 30% 90%, rgba(255,178,77,.16) 0, transparent 60%),
+    linear-gradient(135deg, #0a1e12 0%, #0f3c1e 45%, #08150d 100%);
+}
+.blocked.show{display:flex}
+.blockCard{
+  width:min(620px, 94vw);
+  border-radius:26px;
+  padding:18px 16px 16px;
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 30px 90px rgba(0,0,0,.6);
+  backdrop-filter:blur(10px) saturate(125%);
+  text-align:center;
+}
+.blockBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(255,59,48,.12);
+  border:1px solid rgba(255,59,48,.30);
+  box-shadow:0 0 26px rgba(255,59,48,.12);
+  font-weight:1000;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+  font-size:12px;
+}
+.blockBadge i{
+  display:inline-block;
+  width:10px;height:10px;border-radius:999px;
+  background:#ff3b30;
+  box-shadow:0 0 18px rgba(255,59,48,.55);
+}
+.blockTitle{
+  margin:12px 0 6px;
+  font-size:clamp(20px, 6vw, 28px);
+  font-weight:1000;
+  letter-spacing:.2px;
+}
+.blockText{
+  margin:0 auto;
+  max-width:520px;
+  font-size:14px;
+  opacity:.92;
+  line-height:1.45;
+  font-weight:750;
+}
+.blockMini{
+  margin-top:12px;
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+  opacity:.95;
+  font-weight:850;
+}
+.miniChip{
+  padding:10px 12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+}
+.blockActions{
+  margin-top:14px;
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.blockBtn{
+  border:none;
+  border-radius:16px;
+  padding:12px 14px;
+  cursor:pointer;
+  font-weight:1000;
+  letter-spacing:.3px;
+  background:linear-gradient(90deg, var(--accent3), var(--accent1));
+  color:#052015;
+  box-shadow:0 0 0 1px rgba(255,255,255,.22), 0 10px 26px rgba(0,0,0,.5);
+}
+.blockBtn.secondary{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.20);
+  color:#fff;
+}
+
 @media(max-width:768px){
   header{gap:8px;padding:12px 10px}
   .contact-info{flex-direction:row;flex-wrap:wrap;justify-content:center}
@@ -274,8 +498,50 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
   </style>
 </head>
+
 <body>
   <div class="top-veil" aria-hidden="true"></div>
+
+  <!-- BOOT (pantalla de carga) -->
+  <div id="boot" class="boot show" aria-live="polite" aria-busy="true">
+    <div class="bootCard">
+      <div class="bootTop">
+        <div class="bootLogo" aria-hidden="true">
+          <img id="bootLogoImg" src="" alt="" referrerpolicy="no-referrer">
+        </div>
+        <div>
+          <p id="bootTitle" class="bootTitle">Cargando…</p>
+          <p id="bootSub" class="bootSub">Preparando boletas y verificación de estado</p>
+        </div>
+      </div>
+      <div class="bootMeter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10">
+        <div id="bootBar" class="bootBar"></div>
+        <div class="bootGlow" aria-hidden="true"></div>
+      </div>
+      <p class="bootMsg"><span class="dotPulse" aria-hidden="true"></span> <span id="bootMsgTxt">Iniciando…</span></p>
+      <p class="bootHint" id="bootHint">Tip: en celular puedes escribir el número directo y se muestra solo la boleta.</p>
+    </div>
+  </div>
+
+  <!-- BLOQUEADO (si Configuracion!X2 = TRUE) -->
+  <div id="blocked" class="blocked" aria-live="polite">
+    <div class="blockCard">
+      <div class="blockBadge"><i></i> Sistema inhabilitado</div>
+      <div class="blockTitle" id="blockedTitle">Esta página está temporalmente inhabilitada</div>
+      <p class="blockText" id="blockedText">
+        En este momento el acceso está restringido. Por favor intenta más tarde o contacta al administrador.
+      </p>
+      <div class="blockMini">
+        <div class="miniChip" id="blockedName">Rifas</div>
+        <div class="miniChip" id="blockedPhone"></div>
+        <div class="miniChip" id="blockedAddr"></div>
+      </div>
+      <div class="blockActions">
+        <button class="blockBtn" id="blockedWhatsApp" type="button">Contactar por WhatsApp</button>
+        <button class="blockBtn secondary" id="blockedRetry" type="button">Reintentar</button>
+      </div>
+    </div>
+  </div>
 
   <header>
     <div class="brand">
@@ -287,8 +553,7 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
     <div class="contact-info"><p id="phone"></p><p id="address"></p></div>
     <!-- Botón Finalizar (carrito activo) -->
     <button id="finishTop" class="finish-top-button" type="button">Finalizar</button>
-
-    <!-- Carrito de compras (BOLETAS SELECCIONADAS) dentro del header -->
+    <!-- Carrito -->
     <div id="cartPanel" class="cart-panel" aria-live="polite"></div>
   </header>
 
@@ -312,13 +577,23 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
   <div id="loadingMessage" class="loading-message">Buscando número aleatorio...</div>
 
   <script>
-/* =========================
-   CONFIG + ORÍGENES
-   ========================= */
+/* =========================================================
+   ✅ CONFIG (VISIBLES AL INICIO — como pediste)
+   ========================================================= */
 const KEY = '1MyOkJrGpeY1ZXQVFq_srndALEh6Nzzir8sFSfu-0EVM';
 const GID_RAFFLES = '1661037065';   // A: Número, B: Libre/Asignado
 const GID_CONFIG  = '856149436';    // Config_Publica
+const GID_NOTIFICATIONS = '1029797655'; // Notificaciones (logo)
 const PROXY = 'https://csv-proxy.jeisendigital.workers.dev/?u=';
+
+/* =========================================================
+   ✅ LECTURAS ESPECIALES
+   - Bloqueo: Configuracion!X2  (TRUE/FALSE)
+   - Logo: Notificaciones!D2 (por defecto)
+   ========================================================= */
+const BLOCK_SHEET_NAME = 'Configuracion';
+const BLOCK_CELL_RANGE = 'X2:X2';
+const LOGO_CELL_RANGE  = 'D2:D2';   // ← si tu logo está en otra fila, cambia aquí (ej: D3:D3)
 
 /* =========================
    RENDIMIENTO: caché local
@@ -326,6 +601,8 @@ const PROXY = 'https://csv-proxy.jeisendigital.workers.dev/?u=';
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
 const MAP_CACHE_KEY = 'raffle_map_v3';
 const CONF_CACHE_KEY = 'raffle_conf_v1';
+const LOGO_CACHE_KEY = 'raffle_logo_v1';
+const BLOCK_CACHE_KEY = 'raffle_block_v1';
 
 function saveMapCache(freeList){
   try{ localStorage.setItem(MAP_CACHE_KEY, JSON.stringify({ts:Date.now(), freeList})) }catch(_){}
@@ -352,6 +629,105 @@ function loadConfCache(){
     return {conf, stale:(Date.now()-ts) > CACHE_TTL_MS};
   }catch(_){ return null; }
 }
+function saveLogoCache(logo){
+  try{ localStorage.setItem(LOGO_CACHE_KEY, JSON.stringify({ts:Date.now(), logo})) }catch(_){}
+}
+function loadLogoCache(){
+  try{
+    const raw = localStorage.getItem(LOGO_CACHE_KEY);
+    if(!raw) return null;
+    const {ts, logo} = JSON.parse(raw);
+    if(!logo) return null;
+    return {logo, stale:(Date.now()-ts) > CACHE_TTL_MS};
+  }catch(_){ return null; }
+}
+function saveBlockCache(isBlocked){
+  try{ localStorage.setItem(BLOCK_CACHE_KEY, JSON.stringify({ts:Date.now(), isBlocked:!!isBlocked})) }catch(_){}
+}
+function loadBlockCache(){
+  try{
+    const raw = localStorage.getItem(BLOCK_CACHE_KEY);
+    if(!raw) return null;
+    const {ts, isBlocked} = JSON.parse(raw);
+    if(typeof isBlocked !== 'boolean') return null;
+    return {isBlocked, stale:(Date.now()-ts) > (2*60*1000)}; // bloque se refresca más seguido (2 min)
+  }catch(_){ return null; }
+}
+
+/* =========================
+   BOOT UI (loading pro)
+   ========================= */
+function bootSet(pct, msg, sub){
+  const boot = document.getElementById('boot');
+  const bar = document.getElementById('bootBar');
+  const m = document.getElementById('bootMsgTxt');
+  const s = document.getElementById('bootSub');
+  const title = document.getElementById('bootTitle');
+  if(!boot || !bar || !m) return;
+  const clamped = Math.max(2, Math.min(100, Math.round(pct||0)));
+  bar.style.width = clamped + '%';
+  boot.querySelector('.bootMeter')?.setAttribute('aria-valuenow', String(clamped));
+  if(title && clamped >= 90) title.textContent = '¡Listo!';
+  if(msg) m.textContent = msg;
+  if(sub && s) s.textContent = sub;
+}
+function bootHide(){
+  const boot = document.getElementById('boot');
+  if(!boot) return;
+  boot.classList.add('hide');
+  setTimeout(()=>{ boot.classList.remove('show'); boot.setAttribute('aria-busy','false'); }, 450);
+}
+function bootShow(){
+  const boot = document.getElementById('boot');
+  if(!boot) return;
+  boot.classList.add('show');
+  boot.classList.remove('hide');
+  boot.setAttribute('aria-busy','true');
+}
+function showBlockedScreen(reasonText){
+  // Oculta boot y muestra bloqueado (sin cargar app)
+  const boot = document.getElementById('boot');
+  if(boot) boot.classList.remove('show');
+
+  const blk = document.getElementById('blocked');
+  if(!blk) return;
+  blk.classList.add('show');
+
+  // Completar info si existe config
+  const n = (window.__CONFIG_NAME || 'Rifas').trim();
+  const pr = (window.__CONFIG_PHONE || '').trim();
+  const ad = (window.__CONFIG_ADDR || '').trim();
+
+  const bn = document.getElementById('blockedName');
+  const bp = document.getElementById('blockedPhone');
+  const ba = document.getElementById('blockedAddr');
+  if(bn) bn.textContent = n || 'Rifas';
+  if(bp) bp.textContent = pr ? ('Tel: ' + pr) : 'Tel: —';
+  if(ba) ba.textContent = ad ? ('Dir: ' + ad) : 'Dir: —';
+
+  const bt = document.getElementById('blockedText');
+  if(bt) bt.textContent = reasonText || 'En este momento el acceso está restringido.';
+
+  // WhatsApp
+  const btnWA = document.getElementById('blockedWhatsApp');
+  if(btnWA){
+    btnWA.onclick = ()=>{
+      try{
+        const tel = window.__CONFIG_PHONE_DIGITS || '573206559932';
+        const msg = 'Hola, intento ingresar pero la página está inhabilitada. ¿Me puedes ayudar?';
+        const url = 'https://wa.me/' + tel + '?text=' + encodeURIComponent(msg);
+        const w = window.open(url, '_blank');
+        if(!w) location.href = url;
+      }catch(_){}
+    };
+  }
+
+  // Reintentar (recarga)
+  const retry = document.getElementById('blockedRetry');
+  if(retry){
+    retry.onclick = ()=> location.reload();
+  }
+}
 
 /* =========================
    FETCH optimizado (parallel + timeout)
@@ -371,6 +747,30 @@ function fetchWithTimeout(url, timeout=6000){
 }
 async function fetchCsvAny(gid, timeoutEach=6000){
   const urls = csvUrls(gid);
+  const attempts = urls.map(u => fetchWithTimeout(u, timeoutEach).then(txt=>{
+    if(txt && !txt.trimStart().startsWith('<')) return txt;
+    throw new Error('Respuesta inválida');
+  }));
+  return new Promise((resolve, reject)=>{
+    let rej=0, reason=null;
+    attempts.forEach(p => p.then(resolve).catch(e=>{reason=e; if(++rej===attempts.length) reject(reason)}));
+  });
+}
+
+/* Fetch por "sheet + range" (robusto, evita depender de gid para Configuracion) */
+function rangeUrlsBySheet(sheetName, rangeA1){
+  const ts = Date.now();
+  const s = encodeURIComponent(sheetName);
+  const r = encodeURIComponent(rangeA1);
+  // gviz soporta sheet + range muy bien (ideal para celdas sueltas)
+  return [
+    `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&sheet=${s}&range=${r}&_=${ts}`,
+    // fallback: a veces sheet+range funciona también en export
+    `https://docs.google.com/spreadsheets/d/${KEY}/export?format=csv&sheet=${s}&range=${r}&_=${ts}`
+  ];
+}
+async function fetchCsvBySheetRange(sheetName, rangeA1, timeoutEach=5500){
+  const urls = rangeUrlsBySheet(sheetName, rangeA1);
   const attempts = urls.map(u => fetchWithTimeout(u, timeoutEach).then(txt=>{
     if(txt && !txt.trimStart().startsWith('<')) return txt;
     throw new Error('Respuesta inválida');
@@ -442,6 +842,81 @@ function recalcHeaderHeightDynamic(){
   document.documentElement.style.setProperty('--header-h', h + 'px');
 }
 
+/* =========================================================
+   ✅ 1) CHEQUEO DE BLOQUEO (Configuracion!X2)
+   ========================================================= */
+function normalizeBoolCell(v){
+  const t = String(v ?? '').trim().toUpperCase();
+  if(t === 'TRUE') return true;
+  if(t === 'FALSE') return false;
+  // tolerancia por si llegan "Si/No" o "1/0"
+  if(t === 'SI' || t === 'YES' || t === '1') return true;
+  if(t === 'NO' || t === '0') return false;
+  return null; // desconocido
+}
+async function getBlockedFlagFast(){
+  // cache rápido (pero corto)
+  const bc = loadBlockCache();
+  if(bc && !bc.stale) return bc.isBlocked;
+
+  try{
+    const txt = await fetchCsvBySheetRange(BLOCK_SHEET_NAME, BLOCK_CELL_RANGE, 4500);
+    const rows = parseCSV(txt);
+    const cell = rows?.[1]?.[0] ?? rows?.[0]?.[0] ?? '';
+    const val = normalizeBoolCell(cell);
+    if(val === null) throw new Error('Valor bloqueo inválido: ' + cell);
+    saveBlockCache(val);
+    return val;
+  }catch(_){
+    // Si falla, usa cache viejo si hay; si no, asume NO bloqueado para no dejarte tirado
+    if(bc) return bc.isBlocked;
+    return false;
+  }
+}
+
+/* =========================================================
+   ✅ 2) LOGO DESDE Notificaciones!D2 (gid=1029797655)
+   ========================================================= */
+function applyLogoUrl(url){
+  const u = String(url||'').trim();
+  if(!u) return;
+  const img = document.getElementById('logoImg');
+  const bimg = document.getElementById('bootLogoImg');
+  if(img) img.src = u;
+  if(bimg) bimg.src = u;
+}
+async function loadLogoFast(){
+  const cached = loadLogoCache();
+  if(cached?.logo) applyLogoUrl(cached.logo);
+
+  // Intento 1: leer celda suelta (sheet+range) por nombre (más portable)
+  try{
+    const txt = await fetchCsvBySheetRange('Notificaciones', LOGO_CELL_RANGE, 5000);
+    const rows = parseCSV(txt);
+    const cell = rows?.[1]?.[0] ?? rows?.[0]?.[0] ?? '';
+    const u = String(cell||'').trim();
+    if(u){
+      applyLogoUrl(u);
+      saveLogoCache(u);
+      return;
+    }
+  }catch(_){}
+
+  // Intento 2: fallback por gid completo y tomar D2 (por si "sheet" no está publicado)
+  try{
+    const txt = await fetchCsvAny(GID_NOTIFICATIONS, 5500);
+    const rows = parseCSV(txt);
+    // D2 = fila index 1, col index 3
+    const cell = rows?.[1]?.[3] ?? '';
+    const u = String(cell||'').trim();
+    if(u){
+      applyLogoUrl(u);
+      saveLogoCache(u);
+      return;
+    }
+  }catch(_){}
+}
+
 /* =========================
    UI helpers
    ========================= */
@@ -456,9 +931,7 @@ function closeBox(withScale){
   });
 }
 
-/* Abrir WhatsApp:
-   - Si recibe string: un solo número (comportamiento original)
-   - Si recibe array: varios números (carrito) */
+/* Abrir WhatsApp */
 function openWA(payload){
   const tel = window.__CONFIG_PHONE_DIGITS || '573206559932';
   let message = '';
@@ -482,7 +955,7 @@ function openWA(payload){
   if (!w){ location.href = url; }
 }
 
-/* Carrito: agregar, quitar, renderizar y finalizar */
+/* Carrito */
 function updateTopFinishVisibility(){
   const btn = document.getElementById('finishTop');
   if(!btn) return;
@@ -492,7 +965,6 @@ function updateTopFinishVisibility(){
     btn.style.display = 'none';
   }
 }
-
 function renderCart(){
   const panel = document.getElementById('cartPanel');
   if(!panel) return;
@@ -525,7 +997,6 @@ function renderCart(){
     strip.appendChild(item);
   });
 
-  // Listener sobre el strip para quitar elementos
   strip.addEventListener('click', (ev)=>{
     const btn = ev.target.closest('.cart-item-remove');
     if(!btn) return;
@@ -537,7 +1008,6 @@ function renderCart(){
 
   recalcHeaderHeightDynamic();
 }
-
 function addToCart(n){
   const num = pad4(n);
   if (!CART_ITEMS.includes(num)){
@@ -550,7 +1020,6 @@ function addToCart(n){
   renderCart();
   updateTopFinishVisibility();
 }
-
 function removeFromCart(num){
   const idx = CART_ITEMS.indexOf(num);
   if(idx>-1){
@@ -563,7 +1032,6 @@ function removeFromCart(num){
   renderCart();
   updateTopFinishVisibility();
 }
-
 function finalizeCart(){
   if(!CART_ACTIVE || !CART_ITEMS.length){
     msg('No hay números en el carrito', true);
@@ -571,7 +1039,6 @@ function finalizeCart(){
   }
   const unique = Array.from(new Set(CART_ITEMS.map(pad4)));
   openWA(unique);
-  // Limpiar carrito después de enviar
   CART_ITEMS = [];
   CART_ACTIVE = false;
   document.body.classList.remove('cart-active');
@@ -634,8 +1101,19 @@ function applyConfig({name,phoneRaw,address,logo}){
   document.getElementById('houseName').textContent = String(name||'').trim();
   document.getElementById('phone').textContent = phoneRaw ? ('Tel: ' + phoneRaw) : '';
   document.getElementById('address').textContent = address ? ('Dir: ' + address) : '';
-  document.getElementById('logoImg').src = String(logo||'').trim();
-  window.__CONFIG_PHONE = phoneRaw || '';
+
+  // guardamos para pantalla bloqueada
+  window.__CONFIG_NAME = String(name||'').trim();
+  window.__CONFIG_PHONE = String(phoneRaw||'').trim();
+  window.__CONFIG_ADDR = String(address||'').trim();
+
+  // logo base (solo fallback)
+  const baseLogo = String(logo||'').trim();
+  if(baseLogo){
+    document.getElementById('logoImg').src = baseLogo;
+    const b = document.getElementById('bootLogoImg'); if(b && !b.src) b.src = baseLogo;
+  }
+
   window.__CONFIG_PHONE_DIGITS = extractColombiaDigits(phoneRaw) || '573206559932';
 }
 
@@ -698,7 +1176,7 @@ async function syncMapFast(){
     DAILY = DAILY.filter(n=>ALL[n]==='libre');
     if(DAILY.length===0){ pickDaily(true); }
     if(DAILY.length!==before){ renderGrid(); }
-  }catch(_){ /* Silencio: ya hay caché/placeholder */ }
+  }catch(_){ }
 }
 
 /* =========================
@@ -710,7 +1188,7 @@ async function rerenderSearch(){
   if(SEARCH_INPUT.value!==raw) SEARCH_INPUT.value=raw;
   layer.style.display='none'; layer.innerHTML='';
   if(raw.length===0){ document.body.classList.remove('search-has-text'); return; }
-  document.body.classList.add('search-has-text'); // oculta grid
+  document.body.classList.add('search-has-text');
   const padded=pad4(raw); const st=ALL[padded]||'ocupado';
   if(st==='libre'){ hideMsg(); renderSearchOne(padded); } else { clearSearchLayer(); msg('Boleta ocupada', true); }
 }
@@ -748,7 +1226,6 @@ function animateMs(duration, draw){
 const easeOutCubic=x=>1-Math.pow(1-x,3);
 const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${a})`;
 
-/* Agua real + chispas (rápida: 1.2s) */
 function playWaterRipple(container, duration=1200, center){
   if(!container) return Promise.resolve();
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return Promise.resolve();
@@ -795,8 +1272,6 @@ function playWaterRipple(container, duration=1200, center){
     ctx.globalCompositeOperation='source-over';
   }).then(cleanup);
 }
-
-/* Estela brillante (cometa) del tile al modal (muy fluida: 480ms) */
 async function drawTrailFromTileToBox(tile, box, ov, duration=480){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const fs=fullscreenCanvas(ov); if(!fs) return;
@@ -834,8 +1309,6 @@ async function drawTrailFromTileToBox(tile, box, ov, duration=480){
   });
   cleanup();
 }
-
-/* Modal que “salta” desde la boleta con estela, ahora con carrito */
 function showChoiceFromTile(tile, n){
   const ov=document.getElementById('ov'), box=document.getElementById('box');
   const yes=document.getElementById('yes'), no=document.getElementById('no'), q=document.getElementById('q');
@@ -844,7 +1317,6 @@ function showChoiceFromTile(tile, n){
 
   MODAL_OPEN=true;
 
-  // Configurar texto y botones según estado del carrito
   if(!CART_ACTIVE){
     q.textContent = "¿Quieres separar este número? " + n;
     yes.style.display = 'inline-block';
@@ -878,38 +1350,22 @@ function showChoiceFromTile(tile, n){
     a.onfinish=()=>{box.style.opacity='1'; box.style.transform='none'; box.style.willChange='auto';};
   });
 
-  // Listeners de botones según modo
   yes.onclick = (e)=>{
     e.preventDefault(); e.stopPropagation();
     if(CART_ACTIVE){
-      // Agregar este número y finalizar carrito
       addToCart(n);
       closeBox(true);
       finalizeCart();
     }else{
-      // Comportamiento original: un solo número
       closeBox(true);
       openWA(n);
     }
   };
-
-  no.onclick = (e)=>{
-    e.preventDefault(); e.stopPropagation();
-    closeBox(false);
-  };
-
-  keep.onclick = (e)=>{
-    e.preventDefault(); e.stopPropagation();
-    // Activar / usar carrito y seguir separando
-    addToCart(n);
-    closeBox(true);
-  };
-
+  no.onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); closeBox(false); };
+  keep.onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); addToCart(n); closeBox(true); };
   ov.onclick = ()=> closeBox(false);
   box.onclick=(e)=> e.stopPropagation();
 }
-
-/* Tap de boleta: conecta efectos y modal */
 function onTileTap(el, num, pt){
   if(!el || el.dataset.busy==='1') return;
   el.dataset.busy='1'; hideMsg();
@@ -917,29 +1373,26 @@ function onTileTap(el, num, pt){
   const cx=((pt?.x ?? (rect.left+rect.width/2)) - rect.left)*dpr;
   const cy=((pt?.y ?? (rect.top+rect.height/2))  - rect.top )*dpr;
 
-  const rippleDur = 1200;       // efecto agua rápido
-  const connectAt  = 680;       // abrimos modal antes de terminar el agua -> sensación continua
+  const rippleDur = 1200;
+  const connectAt  = 680;
 
-  // Arranca ondas
   playWaterRipple(el, rippleDur, {x:cx,y:cy})
     .finally(()=>{ el.dataset.busy=''; });
 
-  // Conecta con el modal de forma fluida
   setTimeout(()=>{ showChoiceFromTile(el, num); }, connectAt);
 }
 
 /* =========================
-   INIT ultrarrápido
+   INIT ultrarrápido + BLOQUEO
    ========================= */
 document.addEventListener('DOMContentLoaded', async ()=>{
-  function updateHeaderPadding(){
-    recalcHeaderHeightDynamic();
-  }
+  bootShow();
+  bootSet(10, 'Iniciando…', 'Verificando estado y preparando interfaz');
+
+  function updateHeaderPadding(){ recalcHeaderHeightDynamic(); }
   function applyViewportOffset(){ 
     let top=0; 
-    if(window.visualViewport){ 
-      top=Math.max(0,Math.round(window.visualViewport.offsetTop||0)); 
-    } 
+    if(window.visualViewport){ top=Math.max(0,Math.round(window.visualViewport.offsetTop||0)); } 
     document.documentElement.style.setProperty('--vv-top', top + 'px'); 
     updateHeaderPadding(); 
   }
@@ -950,11 +1403,34 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   }
   window.addEventListener('resize',()=>requestAnimationFrame(applyViewportOffset),{passive:true});
 
+  // Carga base (config + logo) en paralelo para que boot se vea pro y rápido
+  bootSet(18, 'Cargando configuración…', 'Aplicando nombre, teléfono, dirección y logo');
+  await Promise.allSettled([
+    loadConfigFast(),
+    loadLogoFast()
+  ]);
+
+  // Título boot con el nombre (si ya está disponible)
+  const bt = document.getElementById('bootTitle');
+  if(bt) bt.textContent = (window.__CONFIG_NAME ? window.__CONFIG_NAME : 'Rifas');
+
+  // ✅ Chequeo bloqueo lo primero (ya con datos básicos)
+  bootSet(28, 'Verificando habilitación…', 'Leyendo Configuracion!X2');
+  const isBlocked = await getBlockedFlagFast();
+  if(isBlocked === true){
+    showBlockedScreen('Acceso restringido por configuración (Configuracion!X2 = TRUE).');
+    return; // ⛔ no continúa la app
+  }
+
   // Inputs
+  bootSet(40, 'Activando búsqueda…', 'Optimizando para celular');
   const SEARCH_INPUT_EL=document.getElementById('search'); SEARCH_INPUT=SEARCH_INPUT_EL;
+
   function instantFocus(e){
-    if(document.activeElement!==SEARCH_INPUT){ e.preventDefault(); SEARCH_INPUT.focus({preventScroll:true});
-      setTimeout(()=>{ try{ const len=SEARCH_INPUT.value.length; SEARCH_INPUT.setSelectionRange(len,len);}catch(_){ }},0); }
+    if(document.activeElement!==SEARCH_INPUT){
+      e.preventDefault(); SEARCH_INPUT.focus({preventScroll:true});
+      setTimeout(()=>{ try{ const len=SEARCH_INPUT.value.length; SEARCH_INPUT.setSelectionRange(len,len);}catch(_){ }},0);
+    }
   }
   SEARCH_INPUT.addEventListener('pointerdown',instantFocus,{passive:false});
   SEARCH_INPUT.addEventListener('touchstart',instantFocus,{passive:false});
@@ -970,11 +1446,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
     const layer=document.getElementById('searchResult');
     layer.style.display='none'; layer.innerHTML='';
-
-    // asegurar que el grid se oculte
     document.body.classList.add('search-has-text');
 
-    // preparar datos
     if(!ALL || !Object.keys(ALL).length){
       const c=loadMapCache(); if(c?.freeList){ setAllFromFreeList(c.freeList); }
       else { await syncMapFast(); }
@@ -982,7 +1455,6 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const libres=Object.keys(ALL||{}).filter(k=>ALL[k]==='libre');
     const chosen = libres.length ? libres[randInt(libres.length)] : String(randInt(10000)).padStart(4,'0');
 
-    // Efecto sorpresa y luego mostrar solo el elegido
     const placeholder=document.createElement('div'); placeholder.className='raffle large-raffle'; layer.appendChild(placeholder); layer.style.display='flex';
 
     await (async function playMagicBurst(container, duration=1000){
@@ -991,7 +1463,10 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const {ctx,w,h,dpr,cleanup}=oc; const cx=w/2, cy=h/2;
       const colors=[[255,212,77],[0,255,169],[61,183,255],[255,255,255]];
       const N=Math.floor(Math.min(80,50+(w*h)/60000)); const parts=[];
-      for(let i=0;i<N;i++){ const ang=Math.random()*Math.PI*2, sp=(80+Math.random()*180)*dpr, r=(1.3+Math.random()*2)*dpr, col=colors[(Math.random()*colors.length)|0]; parts.push({x:cx,y:cy,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,life:0,max:0.7+Math.random()*0.4,r,col}); }
+      for(let i=0;i<N;i++){
+        const ang=Math.random()*Math.PI*2, sp=(80+Math.random()*180)*dpr, r=(1.3+Math.random()*2)*dpr, col=colors[(Math.random()*colors.length)|0];
+        parts.push({x:cx,y:cy,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,life:0,max:0.7+Math.random()*0.4,r,col});
+      }
       ctx.globalCompositeOperation='lighter';
       await animateMs(duration,(p,dt)=>{
         ctx.clearRect(0,0,w,h);
@@ -1008,12 +1483,12 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     })(placeholder, 1000);
 
     const st=ALL[chosen]||'ocupado'; SEARCH_INPUT.value=String(parseInt(chosen,10));
-    layer.innerHTML=''; // limpiar placeholder
+    layer.innerHTML='';
     if(st==='libre'){ renderSearchOne(chosen); } else { clearSearchLayer(); msg('Boleta ocupada', true); }
     randomBtn.dataset.busy='';
   },{passive:true});
 
-  // Botón FINALIZAR (superior) – solo carrito activo
+  // Botón FINALIZAR (superior)
   const finishTopBtn = document.getElementById('finishTop');
   if(finishTopBtn){
     finishTopBtn.addEventListener('click',(e)=>{
@@ -1022,14 +1497,16 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     });
   }
 
-  // ARRANQUE EXPRESS
+  // ARRANQUE EXPRESS (con boot)
+  bootSet(60, 'Cargando boletas…', 'Usando caché para abrir ultra rápido');
   DAY_MARK=todayKey();
-  await loadConfigFast();
+
   const mcache=loadMapCache();
   if(mcache?.freeList){
     setAllFromFreeList(mcache.freeList);
     pickDaily(true);
     renderGrid();
+    bootSet(82, 'Sincronizando disponibilidad…', 'Actualizando datos en segundo plano');
     if(mcache.stale){ (window.requestIdleCallback? requestIdleCallback(syncMapFast): setTimeout(syncMapFast,0)); }
     else setTimeout(syncMapFast, 1500);
   }else{
@@ -1037,10 +1514,14 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const frag=document.createDocumentFragment();
     for(let i=0;i<24;i++){ const s=document.createElement('div'); s.className='raffle'; s.innerHTML='<span>----</span>'; frag.appendChild(s); }
     wrap.appendChild(frag);
+    bootSet(72, 'Descargando disponibilidad…', 'Primera carga (solo esta vez)');
     await syncMapFast();
     pickDaily(true);
     renderGrid();
   }
+
+  bootSet(95, 'Finalizando…', 'Todo listo');
+  setTimeout(()=> bootHide(), 220);
 
   // Refrescos suaves
   GRID_TIMER=setInterval(()=>renderGrid(), 20000);
@@ -1053,5 +1534,3 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   </script>
 </body>
 </html>
-
-
