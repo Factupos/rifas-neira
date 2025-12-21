@@ -4,11 +4,10 @@
   <meta charset="utf-8"/>
   <title>Boletas de Rifa — rápido & fluido</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, interactive-widget=overlays-content">
-  <!-- Performance -->
   <link rel="preconnect" href="https://docs.google.com" crossorigin>
   <link rel="preconnect" href="https://csv-proxy.jeisendigital.workers.dev" crossorigin>
+
   <style>
-/* ====== BASE UI (ligero y veloz) ====== */
 :root{
   --bg:#129a3a; --bg-deep:#0e7f30; --ink:#ffffff; --muted:#e5ffe8;
   --accent1:#00ffa9; --accent2:#3db7ff; --accent3:#ffb24d;
@@ -25,7 +24,7 @@ body{
   overscroll-behavior-y:contain; touch-action:manipulation;
 }
 
-/* ====== BOOT / LOADING (nuevo) ====== */
+/* ====== BOOT / LOADING ====== */
 .boot{
   position:fixed; inset:0; z-index:10000;
   display:none; align-items:center; justify-content:center;
@@ -47,9 +46,7 @@ body{
   opacity:.8;
 }
 @keyframes bootSpin{to{transform:rotate(360deg)}}
-.boot-bubbles{
-  position:absolute; inset:0; pointer-events:none; opacity:.7;
-}
+.boot-bubbles{position:absolute; inset:0; pointer-events:none; opacity:.7;}
 .boot-bubbles span{
   position:absolute;
   width:clamp(14px,3vw,24px); height:clamp(14px,3vw,24px);
@@ -76,9 +73,7 @@ body{
   backdrop-filter: blur(10px) saturate(120%);
   transform:translateZ(0);
 }
-.boot-top{
-  display:flex; align-items:center; gap:12px;
-}
+.boot-top{display:flex; align-items:center; gap:12px;}
 .boot-badge{
   width:54px; height:54px; border-radius:16px;
   display:grid; place-items:center;
@@ -124,10 +119,7 @@ body{
   50%{transform:translateX(110%)}
   100%{transform:translateX(240%)}
 }
-.boot-steps{
-  margin-top:12px;
-  display:flex; flex-wrap:wrap; gap:8px;
-}
+.boot-steps{margin-top:12px; display:flex; flex-wrap:wrap; gap:8px;}
 .boot-chip{
   padding:8px 10px;
   border-radius:999px;
@@ -142,7 +134,7 @@ body{
   .boot::before, .boot-bubbles span, .boot-meter > i{animation:none !important}
 }
 
-/* ====== BLOQUEADO (nuevo) ====== */
+/* ====== BLOQUEADO ====== */
 .blocked{
   position:fixed; inset:0; z-index:9999;
   display:none; align-items:center; justify-content:center;
@@ -164,28 +156,19 @@ body{
   backdrop-filter: blur(12px) saturate(120%);
   text-align:center;
 }
-.blocked-title{
-  margin:10px 0 6px;
-  font-weight:1000;
-  font-size:clamp(18px,5.2vw,24px);
-}
+.blocked-title{margin:10px 0 6px; font-weight:1000; font-size:clamp(18px,5.2vw,24px);}
 .blocked-text{
-  margin:0 auto 14px;
-  max-width:46ch;
+  margin:0 auto 14px; max-width:46ch;
   color:rgba(235,255,240,.92);
   font-weight:800;
   font-size:clamp(13px,3.8vw,14px);
   line-height:1.35;
 }
-.blocked-actions{
-  display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
-}
+.blocked-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
 .blocked-btn{
   border:none; cursor:pointer;
-  border-radius:14px;
-  padding:12px 16px;
-  font-weight:950;
-  letter-spacing:.3px;
+  border-radius:14px; padding:12px 16px;
+  font-weight:950; letter-spacing:.3px;
   color:#062017;
   background:linear-gradient(90deg,var(--accent1),#a9ffdf);
   box-shadow:0 0 0 1px rgba(255,255,255,.22),0 12px 28px rgba(0,0,0,.45);
@@ -243,29 +226,15 @@ header{
 .contact-info{display:flex;flex-direction:row;align-items:center;gap:10px;margin-left:auto}
 .contact-info p{margin:0;font-size:12px;color:#e5ffe8;font-weight:800;letter-spacing:.2px}
 
-/* Botón FINALIZAR superior (solo carrito activo) */
 .finish-top-button{
-  height:40px;
-  min-height:40px;
-  border-radius:999px;
-  padding:0 18px;
-  font-size:12px;
-  font-weight:900;
-  letter-spacing:.5px;
-  text-transform:uppercase;
-  border:none;
-  cursor:pointer;
-  color:#062017;
+  height:40px; min-height:40px; border-radius:999px; padding:0 18px;
+  font-size:12px; font-weight:900; letter-spacing:.5px; text-transform:uppercase;
+  border:none; cursor:pointer; color:#062017;
   background:linear-gradient(90deg,var(--accent3),var(--accent1));
   box-shadow:0 0 0 1px rgba(255,255,255,.25),0 8px 20px rgba(0,0,0,.45);
-  display:none;
-  flex-shrink:0;
-  align-items:center;
-  justify-content:center;
-  line-height:1;
+  display:none; flex-shrink:0; align-items:center; justify-content:center; line-height:1;
 }
 
-/* Result: cuando hay seleccionado/aleatorio, solo se muestra el elegido */
 .search-result{
   position:fixed; top:calc(var(--vv-top) + var(--extra-top) + var(--header-h) + 12px);
   left:50%; transform:translateX(-50%); z-index:55;
@@ -278,7 +247,6 @@ body.search-has-text #raffles{ display:none !important; }
   margin:16px auto 28px;max-width:1240px;padding:0 10px 20vh
 }
 
-/* ====== CARRITO DE BOLETAS ====== */
 .cart-panel{
   display:none;
   flex:0 0 100%;
@@ -362,21 +330,11 @@ body.search-has-text #raffles{ display:none !important; }
   padding:0;
 }
 @keyframes cartPulse{
-  0%{
-    box-shadow:0 0 0 1px rgba(255,255,255,.3),0 0 10px rgba(0,255,169,.55);
-    transform:translateY(0) scale(1);
-  }
-  50%{
-    box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 18px rgba(61,183,255,.85);
-    transform:translateY(-1px) scale(1.03);
-  }
-  100%{
-    box-shadow:0 0 0 1px rgba(255,255,255,.28),0 0 22px rgba(255,178,77,.95);
-    transform:translateY(0) scale(1);
-  }
+  0%{ box-shadow:0 0 0 1px rgba(255,255,255,.3),0 0 10px rgba(0,255,169,.55); transform:translateY(0) scale(1); }
+  50%{ box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 18px rgba(61,183,255,.85); transform:translateY(-1px) scale(1.03); }
+  100%{ box-shadow:0 0 0 1px rgba(255,255,255,.28),0 0 22px rgba(255,178,77,.95); transform:translateY(0) scale(1); }
 }
 
-/* Tile */
 .raffle{
   --size:clamp(92px,26vw,124px);
   width:var(--size);height:calc(var(--size) + 16px);
@@ -401,8 +359,9 @@ body.search-has-text #raffles{ display:none !important; }
 .raffle::after{content:"";position:absolute;inset:2px;border-radius:14px;background:radial-gradient(60% 60% at 50% 45%, rgba(255,255,255,.08), transparent 70%);z-index:0}
 .large-raffle{--size:clamp(160px,52vw,200px);width:var(--size);height:calc(var(--size) + 18px)}
 .large-raffle span{font-size:clamp(50px,12vw,70px)}
+.raffle.revealed span{animation:revealPop .6s cubic-bezier(.2,.9,.2,1)}
+@keyframes revealPop{0%{transform:scale(.9);filter:brightness(1.25);text-shadow:0 0 18px rgba(255,255,255,.55),0 0 30px rgba(0,255,169,.28)}55%{transform:scale(1.05)}100%{transform:scale(1);filter:none}}
 
-/* Mensajes y overlay */
 .message{
   padding:14px 16px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.45);
   border-radius:14px;width:min(92vw,420px);text-align:center;
@@ -429,19 +388,9 @@ body.search-has-text #raffles{ display:none !important; }
   box-shadow:0 20px 60px rgba(0,0,0,.55); padding:20px 18px; text-align:center; transform-origin:center center
 }
 .q{margin:0 0 10px 0;font-size:clamp(18px,5vw,22px);font-weight:900}
-.actions{
-  display:flex;
-  gap:10px;
-  justify-content:center;
-  flex-wrap:wrap;
-  margin-top:6px;
-}
+.actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:6px;}
 .btn.ok{font-weight:900;border:none;border-radius:14px;padding:12px 18px;cursor:pointer;background:linear-gradient(90deg,var(--accent1),#a9ffdf);color:#062017}
 .btn.no{font-weight:900;border:none;border-radius:14px;padding:12px 18px;cursor:pointer;background:linear-gradient(90deg,#ff6b6b,#ffd0d0);color:#1a0606}
-
-/* Revelado del número */
-.raffle.revealed span{animation:revealPop .6s cubic-bezier(.2,.9,.2,1)}
-@keyframes revealPop{0%{transform:scale(.9);filter:brightness(1.25);text-shadow:0 0 18px rgba(255,255,255,.55),0 0 30px rgba(0,255,169,.28)}55%{transform:scale(1.05)}100%{transform:scale(1);filter:none}}
 
 @media(max-width:768px){
   header{gap:8px;padding:12px 10px}
@@ -452,9 +401,9 @@ body.search-has-text #raffles{ display:none !important; }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition:none !important}}
   </style>
 </head>
-<body>
 
-  <!-- BOOT LOADING (nuevo) -->
+<body>
+  <!-- BOOT LOADING -->
   <div id="boot" class="boot show" aria-hidden="false">
     <div class="boot-bubbles" aria-hidden="true" id="bootBubbles"></div>
     <div class="boot-card" role="status" aria-live="polite">
@@ -479,7 +428,7 @@ body.search-has-text #raffles{ display:none !important; }
     </div>
   </div>
 
-  <!-- BLOQUEADO (nuevo) -->
+  <!-- BLOQUEADO -->
   <div id="blocked" class="blocked" aria-hidden="true">
     <div class="blocked-card">
       <div class="blocked-badge" aria-hidden="true">
@@ -508,21 +457,19 @@ body.search-has-text #raffles{ display:none !important; }
       <img id="logoImg" src="" alt="Logo" referrerpolicy="no-referrer">
       <h1 id="houseName">Rifas</h1>
     </div>
-    <input id="search" class="search-bar" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="4" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar # de boleta…">
+    <input id="search" class="search-bar" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="4"
+           enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+           placeholder="Buscar # de boleta…">
     <button class="random-button" id="randomButton"># ALEATORIO</button>
     <div class="contact-info"><p id="phone"></p><p id="address"></p></div>
 
-    <!-- Botón Finalizar (carrito activo) -->
     <button id="finishTop" class="finish-top-button" type="button">Finalizar</button>
-
-    <!-- Carrito de compras dentro del header -->
     <div id="cartPanel" class="cart-panel" aria-live="polite"></div>
   </header>
 
   <div id="searchResult" class="search-result"></div>
   <div id="raffles" aria-live="polite"></div>
 
-  <!-- Overlay + Modal -->
   <div id="ov" class="ov" aria-hidden="true">
     <div id="box" class="box" role="dialog" aria-modal="true">
       <p id="q" class="q"></p>
@@ -534,33 +481,37 @@ body.search-has-text #raffles{ display:none !important; }
     </div>
   </div>
 
-  <!-- Mensajes -->
   <div id="message" class="message">Boleta ocupada</div>
   <div id="loadingMessage" class="loading-message">Buscando número aleatorio...</div>
 
   <script>
 /* =========================================================
-   ✅ EDITABLE AL INICIO (para no buscar dentro del código)
+   ✅ EDITABLE AL INICIO
    ========================================================= */
-const KEY         = '1MyOkJrGpeY1ZXQVFq_srndALEh6Nzzir8sFSfu-0EVM';
-const GID_RAFFLES  = '1661037065';   // A: Número, B: Libre/Asignado
-const GID_CONFIG   = '856149436';    // Hoja donde existe Configuracion (incluye X2) + Config pública
-const PROXY        = 'https://csv-proxy.jeisendigital.workers.dev/?u=';
+const KEY                = '1MyOkJrGpeY1ZXQVFq_srndALEh6Nzzir8sFSfu-0EVM';
+const GID_RAFFLES         = '1661037065';   // A: Número, B: Libre/Asignado
+const GID_CONFIGURACION   = '1977832725';   // Hoja Configuracion (bloqueo X2 + celular K2)
+const GID_NOTIFICACIONES  = '662101636';    // Hoja Notificaciones (logo D2)
+const PROXY               = 'https://csv-proxy.jeisendigital.workers.dev/?u=';
 
 /* =========================================================
-   BLOQUEO: lee Configuracion!X2 (fila 2, columna X)
-   - "TRUE"  => bloquea
-   - "FALSE" => permite
+   CELDAS FIJAS
+   - Bloqueo: Configuracion X2
+   - Celular: Configuracion K2
+   - Logo: Notificaciones D2
    ========================================================= */
-const ENABLE_CELL = { row: 2, col: 'X' }; // Configuracion X2
-const ENABLE_CACHE_KEY = 'raffle_enabled_v1';
+const ENABLE_CELL = { row: 2, col: 'X' }; // X2
+const PHONE_CELL  = { row: 2, col: 'K' }; // K2
+const LOGO_CELL   = { row: 2, col: 'D' }; // D2
 
 /* =========================
-   RENDIMIENTO: caché local
+   Cachés
    ========================= */
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
-const MAP_CACHE_KEY  = 'raffle_map_v3';
-const CONF_CACHE_KEY = 'raffle_conf_v1';
+const MAP_CACHE_KEY      = 'raffle_map_v3';
+const CONF_CACHE_KEY     = 'raffle_conf_v2';
+const ENABLE_CACHE_KEY   = 'raffle_enabled_v2';
+const LOGO_CACHE_KEY     = 'raffle_logo_v1';
 
 function saveMapCache(freeList){
   try{ localStorage.setItem(MAP_CACHE_KEY, JSON.stringify({ts:Date.now(), freeList})) }catch(_){}
@@ -599,9 +550,21 @@ function loadEnabledCache(){
     return {val, stale:(Date.now()-ts) > CACHE_TTL_MS};
   }catch(_){ return null; }
 }
+function saveLogoCache(url){
+  try{ localStorage.setItem(LOGO_CACHE_KEY, JSON.stringify({ts:Date.now(), url: String(url||'')})) }catch(_){}
+}
+function loadLogoCache(){
+  try{
+    const raw = localStorage.getItem(LOGO_CACHE_KEY);
+    if(!raw) return null;
+    const {ts, url} = JSON.parse(raw);
+    if(!url) return null;
+    return {url, stale:(Date.now()-ts) > CACHE_TTL_MS};
+  }catch(_){ return null; }
+}
 
 /* =========================
-   BOOT UI (nuevo)
+   BOOT UI
    ========================= */
 function bootShow(title, sub){
   const boot = document.getElementById('boot');
@@ -624,8 +587,6 @@ function blockedShow(title, text){
   document.getElementById('blockedText').textContent  = text  || 'En este momento el acceso está restringido desde la configuración.';
   layer.classList.add('show');
   layer.setAttribute('aria-hidden','false');
-
-  // Oculta boot si estuviera
   bootHide();
 }
 function initBootBubbles(){
@@ -634,7 +595,6 @@ function initBootBubbles(){
   wrap.innerHTML = '';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduced) return;
-
   const N = 18;
   for(let i=0;i<N;i++){
     const s = document.createElement('span');
@@ -652,7 +612,7 @@ function initBootBubbles(){
 }
 
 /* =========================
-   FETCH optimizado (parallel + timeout)
+   FETCH optimizado
    ========================= */
 const csvUrls = (gid) => {
   const ts = Date.now();
@@ -680,17 +640,164 @@ async function fetchCsvAny(gid, timeoutEach=6000){
 }
 
 /* =========================
-   Estado global liviano
+   CSV parser
    ========================= */
-let ALL = {};             // { "0000": "libre"/"ocupado" }
-let DAILY = [];           // hasta 240 render inmediato
+function parseCSV(text){
+  if (text.trimStart().startsWith('<')) return [];
+  const rows=[]; let i=0,cur='',inQ=false; const push=()=>{ rows[rows.length-1].push(cur); cur='' };
+  rows.push([]);
+  while(i<text.length){
+    const c=text[i];
+    if(inQ){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++} else inQ=false } else cur+=c; }
+    else{ if(c==='"'){ inQ=true } else if(c===','){ push() } else if(c==='\n'){ push(); rows.push([]) } else if(c!=='\r'){ cur+=c } }
+    i++;
+  }
+  push(); return rows.filter(r => r.some(x=>String(x).trim()!=='')); 
+}
+
+/* =========================
+   Helpers: celdas por letra
+   ========================= */
+function colLetterToIndex(letter){
+  const L = String(letter||'').trim().toUpperCase();
+  if(!L) return 0;
+  let n=0;
+  for(let i=0;i<L.length;i++){
+    const code = L.charCodeAt(i);
+    if(code<65 || code>90) continue;
+    n = n*26 + (code-64);
+  }
+  return Math.max(1,n) - 1;
+}
+function getCell(rows, rowNumber1Based, colLetter){
+  const rIdx = Math.max(1, rowNumber1Based) - 1;
+  const cIdx = colLetterToIndex(colLetter);
+  return rows?.[rIdx]?.[cIdx];
+}
+
+/* =========================
+   Normalización celular Colombia
+   ========================= */
+function extractColombiaDigits(raw){
+  const chunks=(String(raw||'').match(/\d+/g)||[]); let d=chunks.join(''); d=d.replace(/^00/,'');
+  const m=d.match(/57(3\d{9})/); if(m) return '57'+m[1];
+  const m2=d.match(/(?:^|[^0-9])(3\d{9})(?:[^0-9]|$)/); if(m2) return '57'+m2[1];
+  const m3=d.match(/0(3\d{9})/); if(m3) return '57'+m3[1];
+  if(d.startsWith('57') && d.length>=12) return d.slice(0,12);
+  return null;
+}
+
+/* =========================
+   Config UI apply
+   ========================= */
+function applyConfigPartial({name, phoneRaw, address}){
+  if(name) document.getElementById('houseName').textContent = String(name||'').trim();
+  if(phoneRaw !== undefined){
+    document.getElementById('phone').textContent = phoneRaw ? ('Tel: ' + phoneRaw) : '';
+    window.__CONFIG_PHONE = phoneRaw || '';
+    window.__CONFIG_PHONE_DIGITS = extractColombiaDigits(phoneRaw) || '';
+  }
+  if(address !== undefined){
+    document.getElementById('address').textContent = address ? ('Dir: ' + address) : '';
+  }
+}
+function applyLogo(url){
+  const img = document.getElementById('logoImg');
+  if(img) img.src = String(url||'').trim();
+}
+
+/* =========================
+   Lectura Configuracion:
+   - Bloqueo X2
+   - Celular K2 (PRIORIDAD)
+   - (Opcional) Nombre/Dir si existen por headers (fallback)
+   ========================= */
+function readConfFromConfig(rows){
+  const head=rows[0]||[], data=rows[1]||[];
+  const hIdx=(name)=> head.findIndex(h => String(h).trim().toLowerCase()===String(name).toLowerCase());
+  const name = data[hIdx('Nombre_APP')] || data[hIdx('Nombre_De_La_Rifa')] || 'Rifas';
+  const address = data[hIdx('Direccion')] || '';
+  // ✅ Celular FIJO desde K2
+  const phoneK2 = String(getCell(rows, PHONE_CELL.row, PHONE_CELL.col) ?? '').trim();
+  return { name, address, phoneRaw: phoneK2 || '' };
+}
+function readBlockedFromConfig(rows){
+  const raw = String(getCell(rows, ENABLE_CELL.row, ENABLE_CELL.col) ?? '').trim().toUpperCase();
+  return (raw === 'TRUE');
+}
+
+/* =========================
+   Lectura Logo desde Notificaciones D2
+   ========================= */
+function readLogoFromNotif(rows){
+  return String(getCell(rows, LOGO_CELL.row, LOGO_CELL.col) ?? '').trim();
+}
+
+/* =========================================================
+   BLOQUEO + CARGA CONFIG (rápido y seguro)
+   ========================================================= */
+async function loadConfigAndCheckAccess(){
+  // Cache visual (para evitar parpadeos)
+  const cachedConf = loadConfCache();
+  if(cachedConf?.conf) applyConfigPartial(cachedConf.conf);
+
+  const cachedLogo = loadLogoCache();
+  if(cachedLogo?.url) applyLogo(cachedLogo.url);
+
+  // 1) Leer Configuracion primero (bloqueo + celular)
+  try{
+    const txt  = await fetchCsvAny(GID_CONFIGURACION, 5200);
+    const rows = parseCSV(txt);
+    if(rows.length >= 2){
+      const blocked = readBlockedFromConfig(rows);
+      saveEnabledCache(blocked);
+
+      const conf = readConfFromConfig(rows);
+      applyConfigPartial(conf);
+      saveConfCache(conf);
+
+      return { blocked, ok:true };
+    }
+  }catch(_){
+    // fallback cache
+  }
+
+  const cachedEn = loadEnabledCache();
+  if(cachedEn && typeof cachedEn.val === 'boolean'){
+    return { blocked: cachedEn.val, ok:false };
+  }
+
+  return { blocked:false, ok:false };
+}
+
+/* =========================================================
+   Cargar logo desde Notificaciones (no bloqueante)
+   ========================================================= */
+async function loadLogoFromNotificaciones(){
+  try{
+    const txt  = await fetchCsvAny(GID_NOTIFICACIONES, 5200);
+    const rows = parseCSV(txt);
+    if(rows.length >= 2){
+      const logo = readLogoFromNotif(rows);
+      if(logo){
+        applyLogo(logo);
+        saveLogoCache(logo);
+      }
+    }
+  }catch(_){}
+}
+
+/* =========================
+   Estado global
+   ========================= */
+let ALL = {};
+let DAILY = [];
 let SEARCH_INPUT = null;
 let GRID_TIMER = null;
 let MAP_TIMER = null;
 let MODAL_OPEN = false;
 let DAY_MARK = null;
 
-/* Carrito de compras */
 let CART_ACTIVE = false;
 let CART_ITEMS = [];
 
@@ -709,30 +816,10 @@ function msg(text, error=false){
   clearTimeout(msg._t); msg._t = setTimeout(()=>{ el.style.display = 'none'; }, error ? 2000 : 1000);
 }
 function hideMsg(){ const el = document.getElementById('message'); if(!el) return; clearTimeout(msg._t); el.style.display='none'; }
-function parseCSV(text){
-  if (text.trimStart().startsWith('<')) return [];
-  const rows=[]; let i=0,cur='',inQ=false; const push=()=>{ rows[rows.length-1].push(cur); cur='' };
-  rows.push([]);
-  while(i<text.length){
-    const c=text[i];
-    if(inQ){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++} else inQ=false } else cur+=c; }
-    else{ if(c==='"'){ inQ=true } else if(c===','){ push() } else if(c==='\n'){ push(); rows.push([]) } else if(c!=='\r'){ cur+=c } }
-    i++;
-  }
-  push(); return rows.filter(r => r.some(x=>String(x).trim()!=='')); 
-}
+
 function makeBaseMap(){ const map={}; for(let i=0;i<10000;i++){ map[String(i).padStart(4,'0')]='ocupado' } return map }
 function normStatusAB(s){ const t=String(s??'').trim().toLowerCase(); return t==='libre' ? 'libre' : 'ocupado' }
-function extractColombiaDigits(raw){
-  const chunks=(String(raw||'').match(/\d+/g)||[]); let d=chunks.join(''); d=d.replace(/^00/,'');
-  const m=d.match(/57(3\d{9})/); if(m) return '57'+m[1];
-  const m2=d.match(/(?:^|[^0-9])(3\d{9})(?:[^0-9]|$)/); if(m2) return '57'+m2[1];
-  const m3=d.match(/0(3\d{9})/); if(m3) return '57'+m3[1];
-  if(d.startsWith('57') && d.length>=12) return d.slice(0,12);
-  return null;
-}
 
-/* Recalcular altura del header cuando aparece/desaparece el carrito */
 function recalcHeaderHeightDynamic(){
   const hEl = document.querySelector('header');
   if(!hEl) return;
@@ -741,24 +828,10 @@ function recalcHeaderHeightDynamic(){
 }
 
 /* =========================
-   UI helpers
+   WhatsApp (usa celular de Configuracion K2)
    ========================= */
-function closeBox(withScale){
-  const ov=document.getElementById('ov'), box=document.getElementById('box');
-  if(!ov||!box) return;
-  const a1 = box.animate(withScale?[{transform:'scale(1)',opacity:1},{transform:'scale(.94)',opacity:0}]:[{opacity:1},{opacity:0}],{duration:180,easing:'ease-in',fill:'forwards'});
-  const a2 = ov.animate([{backgroundColor:'rgba(0,0,0,0.35)'},{backgroundColor:'rgba(0,0,0,0)'}],{duration:180,fill:'forwards'});
-  Promise.all([a1.finished,a2.finished]).catch(()=>{}).finally(()=>{
-    MODAL_OPEN=false; ov.classList.remove('show'); ov.setAttribute('aria-hidden','true');
-    box.style.opacity='1'; box.style.transform='none'; ov.style.backgroundColor='rgba(0,0,0,.35)';
-  });
-}
-
-/* Abrir WhatsApp:
-   - Si recibe string: un solo número
-   - Si recibe array: varios números (carrito) */
 function openWA(payload){
-  const tel = window.__CONFIG_PHONE_DIGITS || '573206559932';
+  const tel = window.__CONFIG_PHONE_DIGITS || '57' + '3' + '000000000'; // fallback
   let message = '';
 
   if (Array.isArray(payload)) {
@@ -779,10 +852,8 @@ function openWA(payload){
   const w = window.open(url, '_blank');
   if (!w){ location.href = url; }
 }
-
-/* Botón de contacto en bloqueado */
 function openWAContact(){
-  const tel = window.__CONFIG_PHONE_DIGITS || '573206559932';
+  const tel = window.__CONFIG_PHONE_DIGITS || '57' + '3' + '000000000';
   const msgText = "Hola, la página de boletas aparece inhabilitada. ¿Me ayudas a habilitarla, por favor?";
   const url = "https://wa.me/" + tel + "?text=" + encodeURIComponent(msgText);
   const w = window.open(url, '_blank');
@@ -875,7 +946,7 @@ function finalizeCart(){
 }
 
 /* =========================
-   Tiles / grid
+   Tiles / grid (igual)
    ========================= */
 function makeTile(num, large){
   const el = document.createElement('div');
@@ -903,86 +974,7 @@ function renderSearchOne(num){
 function clearSearchLayer(){ const layer=document.getElementById('searchResult'); layer.style.display='none'; layer.innerHTML='' }
 
 /* =========================
-   Config pública + Bloqueo (optimizado)
-   - Carga 1 sola vez el CSV de GID_CONFIG y de ahí:
-     a) Lee X2 (habilitado)
-     b) Lee Nombre_APP / Telefonos / Dirección / Logo
-   ========================= */
-function colLetterToIndex(letter){
-  const L = String(letter||'').trim().toUpperCase();
-  if(!L) return 0;
-  // A=1, B=2, ... Z=26, AA=27...
-  let n=0;
-  for(let i=0;i<L.length;i++){
-    const code = L.charCodeAt(i);
-    if(code<65 || code>90) continue;
-    n = n*26 + (code-64);
-  }
-  return Math.max(1,n) - 1; // 0-based
-}
-function getCell(rows, rowNumber1Based, colLetter){
-  const rIdx = Math.max(1, rowNumber1Based) - 1; // 0-based
-  const cIdx = colLetterToIndex(colLetter);
-  return rows?.[rIdx]?.[cIdx];
-}
-
-async function loadConfigAndCheckAccess(){
-  // 1) Aplica caché de config (para que el header no parpadee)
-  const cachedConf = loadConfCache();
-  if(cachedConf?.conf) applyConfig(cachedConf.conf);
-
-  // 2) Intenta verificación rápida desde red (si falla, fallback a caché)
-  try{
-    const txt  = await fetchCsvAny(GID_CONFIG, 5200);
-    const rows = parseCSV(txt);
-    if(rows.length >= 2){
-      // A) Bloqueo por X2
-      const raw = String(getCell(rows, ENABLE_CELL.row, ENABLE_CELL.col) ?? '').trim().toUpperCase();
-      const blocked = (raw === 'TRUE');
-      saveEnabledCache(blocked);
-
-      // B) Config pública (si existe header)
-      const conf = readConf(rows);
-      applyConfig(conf);
-      saveConfCache(conf);
-
-      return { blocked, source:'network' };
-    }
-  }catch(_){
-    // continúa abajo
-  }
-
-  // 3) Fallback: caché de habilitado
-  const cachedEn = loadEnabledCache();
-  if(cachedEn && typeof cachedEn.val === 'boolean'){
-    return { blocked: cachedEn.val, source:'cache' };
-  }
-
-  // 4) Sin datos: permitir por defecto (mejor UX)
-  return { blocked:false, source:'default' };
-}
-
-function readConf(rows){
-  const head=rows[0]||[], data=rows[1]||[];
-  const hIdx=(name)=> head.findIndex(h => String(h).trim().toLowerCase()===String(name).toLowerCase());
-  return {
-    name: data[hIdx('Nombre_APP')] || data[hIdx('Nombre_De_La_Rifa')] || 'Rifas',
-    phoneRaw: data[hIdx('Telefonos')] || '',
-    address: data[hIdx('Direccion')] || '',
-    logo: data[hIdx('Logo')] || ''
-  };
-}
-function applyConfig({name,phoneRaw,address,logo}){
-  document.getElementById('houseName').textContent = String(name||'').trim();
-  document.getElementById('phone').textContent = phoneRaw ? ('Tel: ' + phoneRaw) : '';
-  document.getElementById('address').textContent = address ? ('Dir: ' + address) : '';
-  document.getElementById('logoImg').src = String(logo||'').trim();
-  window.__CONFIG_PHONE = phoneRaw || '';
-  window.__CONFIG_PHONE_DIGITS = extractColombiaDigits(phoneRaw) || '573206559932';
-}
-
-/* =========================
-   Mapa rápido (caché primero)
+   Mapa boletas
    ========================= */
 function setAllFromFreeList(freeList){
   const map = makeBaseMap();
@@ -1018,9 +1010,6 @@ function pickDaily(force=false){
   persistDaily();
 }
 
-/* =========================
-   Sincronización remota
-   ========================= */
 async function syncMapFast(){
   try{
     const txt = await fetchCsvAny(GID_RAFFLES, 6000);
@@ -1040,7 +1029,7 @@ async function syncMapFast(){
     DAILY = DAILY.filter(n=>ALL[n]==='libre');
     if(DAILY.length===0){ pickDaily(true); }
     if(DAILY.length!==before){ renderGrid(); }
-  }catch(_){ /* Silencio: ya hay caché/placeholder */ }
+  }catch(_){ }
 }
 
 /* =========================
@@ -1058,7 +1047,7 @@ async function rerenderSearch(){
 }
 
 /* =========================
-   EFECTOS (on-demand)
+   Efectos (igual)
    ========================= */
 function overlayCanvas(container){
   if(!container) return null;
@@ -1090,7 +1079,6 @@ function animateMs(duration, draw){
 const easeOutCubic=x=>1-Math.pow(1-x,3);
 const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${a})`;
 
-/* Agua real + chispas (rápida: 1.2s) */
 function playWaterRipple(container, duration=1200, center){
   if(!container) return Promise.resolve();
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return Promise.resolve();
@@ -1138,7 +1126,6 @@ function playWaterRipple(container, duration=1200, center){
   }).then(cleanup);
 }
 
-/* Estela brillante (cometa) del tile al modal (muy fluida: 480ms) */
 async function drawTrailFromTileToBox(tile, box, ov, duration=480){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const fs=fullscreenCanvas(ov); if(!fs) return;
@@ -1177,7 +1164,17 @@ async function drawTrailFromTileToBox(tile, box, ov, duration=480){
   cleanup();
 }
 
-/* Modal con carrito */
+function closeBox(withScale){
+  const ov=document.getElementById('ov'), box=document.getElementById('box');
+  if(!ov||!box) return;
+  const a1 = box.animate(withScale?[{transform:'scale(1)',opacity:1},{transform:'scale(.94)',opacity:0}]:[{opacity:1},{opacity:0}],{duration:180,easing:'ease-in',fill:'forwards'});
+  const a2 = ov.animate([{backgroundColor:'rgba(0,0,0,0.35)'},{backgroundColor:'rgba(0,0,0,0)'}],{duration:180,fill:'forwards'});
+  Promise.all([a1.finished,a2.finished]).catch(()=>{}).finally(()=>{
+    MODAL_OPEN=false; ov.classList.remove('show'); ov.setAttribute('aria-hidden','true');
+    box.style.opacity='1'; box.style.transform='none'; ov.style.backgroundColor='rgba(0,0,0,.35)';
+  });
+}
+
 function showChoiceFromTile(tile, n){
   const ov=document.getElementById('ov'), box=document.getElementById('box');
   const yes=document.getElementById('yes'), no=document.getElementById('no'), q=document.getElementById('q');
@@ -1227,21 +1224,13 @@ function showChoiceFromTile(tile, n){
       openWA(n);
     }
   };
-  no.onclick = (e)=>{
-    e.preventDefault(); e.stopPropagation();
-    closeBox(false);
-  };
-  keep.onclick = (e)=>{
-    e.preventDefault(); e.stopPropagation();
-    addToCart(n);
-    closeBox(true);
-  };
+  no.onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); closeBox(false); };
+  keep.onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); addToCart(n); closeBox(true); };
 
   ov.onclick = ()=> closeBox(false);
   box.onclick=(e)=> e.stopPropagation();
 }
 
-/* Tap de boleta */
 function onTileTap(el, num, pt){
   if(!el || el.dataset.busy==='1') return;
   el.dataset.busy='1'; hideMsg();
@@ -1249,59 +1238,64 @@ function onTileTap(el, num, pt){
   const cx=((pt?.x ?? (rect.left+rect.width/2)) - rect.left)*dpr;
   const cy=((pt?.y ?? (rect.top+rect.height/2))  - rect.top )*dpr;
 
-  const rippleDur = 1200;
-  const connectAt  = 680;
-
-  playWaterRipple(el, rippleDur, {x:cx,y:cy})
+  playWaterRipple(el, 1200, {x:cx,y:cy})
     .finally(()=>{ el.dataset.busy=''; });
 
-  setTimeout(()=>{ showChoiceFromTile(el, num); }, connectAt);
+  setTimeout(()=>{ showChoiceFromTile(el, num); }, 680);
 }
 
 /* =========================
-   INIT ultrarrápido + BLOQUEO
+   INIT
    ========================= */
 document.addEventListener('DOMContentLoaded', async ()=>{
   initBootBubbles();
   bootShow('Cargando…', 'Verificando acceso y preparando boletas');
 
-  // Botones de bloqueado
   const br = document.getElementById('blockedReload');
   const bw = document.getElementById('blockedWhats');
   if(br) br.addEventListener('click', ()=> location.reload());
   if(bw) bw.addEventListener('click', ()=> openWAContact());
 
-  function updateHeaderPadding(){ recalcHeaderHeightDynamic(); }
-  function applyViewportOffset(){ 
-    let top=0; 
-    if(window.visualViewport){ top=Math.max(0,Math.round(window.visualViewport.offsetTop||0)); } 
-    document.documentElement.style.setProperty('--vv-top', top + 'px'); 
-    updateHeaderPadding(); 
+  function applyViewportOffset(){
+    let top=0;
+    if(window.visualViewport){ top=Math.max(0,Math.round(window.visualViewport.offsetTop||0)); }
+    document.documentElement.style.setProperty('--vv-top', top + 'px');
+    recalcHeaderHeightDynamic();
   }
-  updateHeaderPadding(); applyViewportOffset();
+  recalcHeaderHeightDynamic();
+  applyViewportOffset();
   if(window.visualViewport){
     visualViewport.addEventListener('resize',()=>requestAnimationFrame(applyViewportOffset));
     visualViewport.addEventListener('scroll',()=>requestAnimationFrame(applyViewportOffset));
   }
   window.addEventListener('resize',()=>requestAnimationFrame(applyViewportOffset),{passive:true});
 
-  // 1) Verificación + config (una sola lectura de CSV)
-  bootShow('Cargando…', 'Verificando acceso');
+  // 1) Config + bloqueo (Configuracion X2)
+  bootShow('Cargando…', 'Verificando acceso (Configuración)');
   const access = await loadConfigAndCheckAccess();
 
   if(access.blocked){
     blockedShow(
       'Página temporalmente inhabilitada',
-      'Este acceso está restringido desde Configuracion (X2 = TRUE). Si necesitas habilitarla, cambia X2 a FALSE.'
+      'Este acceso está restringido desde Configuracion (X2 = TRUE). Para habilitar: cambia X2 a FALSE.'
     );
+    // Igual intentamos cargar logo (por si quieres mostrarlo también en bloqueado)
+    loadLogoFromNotificaciones().catch(()=>{});
     return;
   }
 
+  // 2) Cargar logo desde Notificaciones D2 (no bloqueante)
+  bootShow('Cargando…', 'Cargando logo (Notificaciones)');
+  loadLogoFromNotificaciones().catch(()=>{});
+
   // Inputs
-  const SEARCH_INPUT_EL=document.getElementById('search'); SEARCH_INPUT=SEARCH_INPUT_EL;
+  SEARCH_INPUT=document.getElementById('search');
   function instantFocus(e){
-    if(document.activeElement!==SEARCH_INPUT){ e.preventDefault(); SEARCH_INPUT.focus({preventScroll:true});
-      setTimeout(()=>{ try{ const len=SEARCH_INPUT.value.length; SEARCH_INPUT.setSelectionRange(len,len);}catch(_){ }},0); }
+    if(document.activeElement!==SEARCH_INPUT){
+      e.preventDefault();
+      SEARCH_INPUT.focus({preventScroll:true});
+      setTimeout(()=>{ try{ const len=SEARCH_INPUT.value.length; SEARCH_INPUT.setSelectionRange(len,len);}catch(_){ }},0);
+    }
   }
   SEARCH_INPUT.addEventListener('pointerdown',instantFocus,{passive:false});
   SEARCH_INPUT.addEventListener('touchstart',instantFocus,{passive:false});
@@ -1317,7 +1311,6 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
     const layer=document.getElementById('searchResult');
     layer.style.display='none'; layer.innerHTML='';
-
     document.body.classList.add('search-has-text');
 
     if(!ALL || !Object.keys(ALL).length){
@@ -1327,32 +1320,9 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const libres=Object.keys(ALL||{}).filter(k=>ALL[k]==='libre');
     const chosen = libres.length ? libres[randInt(libres.length)] : String(randInt(10000)).padStart(4,'0');
 
-    const placeholder=document.createElement('div'); placeholder.className='raffle large-raffle'; layer.appendChild(placeholder); layer.style.display='flex';
+    const st=ALL[chosen]||'ocupado';
+    SEARCH_INPUT.value=String(parseInt(chosen,10));
 
-    await (async function playMagicBurst(container, duration=1000){
-      if(!container || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const oc=overlayCanvas(container); if(!oc) return;
-      const {ctx,w,h,dpr,cleanup}=oc; const cx=w/2, cy=h/2;
-      const colors=[[255,212,77],[0,255,169],[61,183,255],[255,255,255]];
-      const N=Math.floor(Math.min(80,50+(w*h)/60000)); const parts=[];
-      for(let i=0;i<N;i++){ const ang=Math.random()*Math.PI*2, sp=(80+Math.random()*180)*dpr, r=(1.3+Math.random()*2)*dpr, col=colors[(Math.random()*colors.length)|0]; parts.push({x:cx,y:cy,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,life:0,max:0.7+Math.random()*0.4,r,col}); }
-      ctx.globalCompositeOperation='lighter';
-      await animateMs(duration,(p,dt)=>{
-        ctx.clearRect(0,0,w,h);
-        const ringR=(Math.max(w,h)*0.46)*Math.sin(p*Math.PI); const aR=(1-p)*0.85;
-        ctx.lineWidth=Math.max(1,4.5*dpr*(1-p)); ctx.strokeStyle=rgba(255,212,77,aR); ctx.beginPath(); ctx.arc(cx,cy,Math.max(0,ringR*0.6),0,Math.PI*2); ctx.stroke();
-        ctx.strokeStyle=rgba(0,255,169,aR*0.85); ctx.beginPath(); ctx.arc(cx,cy,Math.max(0,ringR*0.42),0,Math.PI*2); ctx.stroke();
-        for(const pt of parts){
-          pt.life+=dt; pt.vx*=(1-0.8*dt); pt.vy*=(1-0.8*dt); pt.vy+=240*dt*dpr*0.25; pt.x+=pt.vx*dt; pt.y+=pt.vy*dt;
-          const a=Math.max(0,1-(pt.life/pt.max)); if(a<=0) continue;
-          ctx.beginPath(); ctx.fillStyle=rgba(pt.col[0],pt.col[1],pt.col[2],a); ctx.arc(pt.x,pt.y,pt.r,0,Math.PI*2); ctx.fill();
-        }
-      });
-      cleanup();
-    })(placeholder, 1000);
-
-    const st=ALL[chosen]||'ocupado'; SEARCH_INPUT.value=String(parseInt(chosen,10));
-    layer.innerHTML='';
     if(st==='libre'){ renderSearchOne(chosen); } else { clearSearchLayer(); msg('Boleta ocupada', true); }
     randomBtn.dataset.busy='';
   },{passive:true});
@@ -1366,7 +1336,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     });
   }
 
-  // 2) Arranque del mapa
+  // 3) Arranque del mapa
   bootShow('Cargando…', 'Preparando boletas');
   DAY_MARK=todayKey();
 
@@ -1375,27 +1345,44 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     setAllFromFreeList(mcache.freeList);
     pickDaily(true);
     renderGrid();
-    if(mcache.stale){ (window.requestIdleCallback? requestIdleCallback(syncMapFast): setTimeout(syncMapFast,0)); }
-    else setTimeout(syncMapFast, 1500);
+    if(mcache.stale){
+      (window.requestIdleCallback ? requestIdleCallback(syncMapFast) : setTimeout(syncMapFast,0));
+    }else{
+      setTimeout(syncMapFast, 1500);
+    }
   }else{
     const wrap=document.getElementById('raffles');
     const frag=document.createDocumentFragment();
-    for(let i=0;i<24;i++){ const s=document.createElement('div'); s.className='raffle'; s.innerHTML='<span>----</span>'; frag.appendChild(s); }
+    for(let i=0;i<24;i++){
+      const s=document.createElement('div');
+      s.className='raffle';
+      s.innerHTML='<span>----</span>';
+      frag.appendChild(s);
+    }
     wrap.appendChild(frag);
+
     await syncMapFast();
     pickDaily(true);
     renderGrid();
   }
 
-  // 3) Listo
   bootHide();
 
   // Refrescos suaves
   GRID_TIMER=setInterval(()=>renderGrid(), 20000);
   MAP_TIMER=setInterval(async ()=>{
     const nowKey=todayKey();
-    if(nowKey!==DAY_MARK){ DAY_MARK=nowKey; await syncMapFast(); DAILY=[]; pickDaily(true); renderGrid(); return; }
-    const before=DAILY.length; await syncMapFast(); if(DAILY.length!==before){ renderGrid(); }
+    if(nowKey!==DAY_MARK){
+      DAY_MARK=nowKey;
+      await syncMapFast();
+      DAILY=[];
+      pickDaily(true);
+      renderGrid();
+      return;
+    }
+    const before=DAILY.length;
+    await syncMapFast();
+    if(DAILY.length!==before){ renderGrid(); }
   }, 20000);
 });
   </script>
