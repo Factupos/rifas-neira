@@ -373,13 +373,15 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
 .large-raffle .num{font-size:clamp(50px,12vw,70px)}
 
 /* Mensajes y overlay */
+/* Mensajes y overlay */
 .message{
-  padding:14px 16px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.45);
+  padding:14px 16px;background:rgba(255,255,255,12);color:#fff;border:1px solid rgba(255,255,255,45);
   border-radius:14px;width:min(92vw,420px);text-align:center;
-  font-size:clamp(16px,4.8vw,22px);font-weight:900;display:none;
+  font-size:clamp(16px,4.8vw,22px);font-weight:900;display:none !important;
   position:fixed;top:calc(var(--sat) + var(--vv-top) + var(--extra-top) + var(--header-h) + 10px);left:50%;transform:translateX(-50%);
-  z-index:60;box-shadow:0 12px 30px rgba(0,0,0,.35)
+  z-index:60;box-shadow:0 12px 30px rgba(0,0,0,35)
 }
+
 .message.error{background:#ff3b30;border-color:#ffd0d0;color:#fff}
 .loading-message{position:fixed;top:44%;left:50%;transform:translate(-50%,-50%);
   background:rgba(5,25,16,.55);color:rgba(255,255,255,.92);border:1px solid var(--panel-border);
@@ -1825,3 +1827,4 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   </script>
 </body>
 </html>
+
