@@ -779,10 +779,10 @@ const CACHE_META = Object.freeze({
   path: location.pathname
 });
 
-const MAP_CACHE_KEY   = `${CACHE_NS}_map_v3`;
-const CONF_CACHE_KEY  = `${CACHE_NS}_conf_v1`;
-const LOGO_CACHE_KEY  = `${CACHE_NS}_logo_v1`;
-const BLOCK_CACHE_KEY = `${CACHE_NS}_block_v1`;
+const MAP_CACHE_KEY   = `${CACHE_NS}_map_v4`; // Cambiado a v4 para forzar reseteo general
+const CONF_CACHE_KEY  = `${CACHE_NS}_conf_v2`;
+const LOGO_CACHE_KEY  = `${CACHE_NS}_logo_v2`;
+const BLOCK_CACHE_KEY = `${CACHE_NS}_block_v2`;
 
 // Daily también debe ser por página (no solo por fecha)
 function dailyKey(){ return `${CACHE_NS}_daily_${todayKey()}`; }
@@ -1732,25 +1732,25 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   bootSet(10, 'Iniciando…', 'Verificando estado y preparando interfaz');
 
   function updateHeaderPadding(){ recalcHeaderHeightDynamic(); }
+  
+  // 👇 NUEVO: Observador constante para el banner superior
+  const headObserver = document.querySelector('header');
+  if(headObserver && window.ResizeObserver){
+    new ResizeObserver(() => updateHeaderPadding()).observe(headObserver);
+  }
+
   function applyViewportOffset(){
     let top = 0;
-
     if (window.visualViewport){
       const vv = window.visualViewport;
-
-      // ✅ Solo aplicar offset cuando realmente parece teclado abierto.
-      // En iOS Safari, offsetTop cambia durante el scroll normal por la barra del navegador.
       const keyboardLikely = (window.innerHeight - vv.height) > 120;
-
       if (keyboardLikely){
         top = Math.max(0, Math.round(vv.offsetTop || 0));
-        // ✅ Clamp defensivo para evitar valores locos que crean “velos” gigantes/parpadeos
         top = Math.min(top, 180);
       } else {
         top = 0;
       }
     }
-
     document.documentElement.style.setProperty('--vv-top', top + 'px');
     updateHeaderPadding();
   }
