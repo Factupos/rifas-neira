@@ -1421,7 +1421,9 @@ function setAllFromFreeList(freeList){
   for(const n of freeList){ map[n] = 'libre'; }
   ALL = map;
 }
-function sampleDailyFromFreeList(freeList, target=240){
+
+// 👇 1. CAMBIO AQUÍ: Cambiamos el target de 240 a 500
+function sampleDailyFromFreeList(freeList, target=500){
   const L = freeList.length;
   if(L<=target) return [...freeList];
   const out = freeList.slice(0, target);
@@ -1431,10 +1433,12 @@ function sampleDailyFromFreeList(freeList, target=240){
   }
   return out;
 }
+
 function persistDaily(){
   const key = dailyKey();
   try{ localStorage.setItem(key, JSON.stringify(DAILY||[])) }catch(_){}
 }
+
 function loadDailyFromCache(){
   const key = dailyKey();
   try{
@@ -1447,10 +1451,14 @@ function loadDailyFromCache(){
   }catch(_){}
   return false;
 }
+
 function pickDaily(force=false){
   if(!force && loadDailyFromCache()) return;
   const libres = Object.keys(ALL||{}).filter(k=>ALL[k]==='libre');
-  DAILY = sampleDailyFromFreeList(libres, 240);
+  
+  // 👇 2. CAMBIO AQUÍ: Obligamos a tomar 500 números de la lista
+  DAILY = sampleDailyFromFreeList(libres, 500); 
+  
   persistDaily();
 }
 
@@ -1464,14 +1472,7 @@ async function syncMapFast(){
     if(rows.length < 2) return;
     const freeList=[];
     for(let i=1;i<rows.length;i++){
-          const r=rows[i]||[];
-          
-          // 👇 Cambia r[0] por r[2] para leer la Columna C (Tickets)
-          const a=(r[2]??'').toString().trim(); 
-          
-          // 👇 Si la columna "Libre/Asignado" también se movió, ajusta este índice (ej. r[3] para Columna D)
-          const b=(r[1]??'').toString().trim(); 
-
+          const r=rows[i]||[]; const a=(r[0]??'').toString().trim(); const b=(r[1]??'').toString().trim();
           if(!a) continue; let digits=a.replace(/\D/g,''); if(!digits) continue;
       if(digits.length>4) digits=digits.slice(0,4);
       const num=digits.padStart(4,'0');
