@@ -991,53 +991,41 @@ const csvUrls = (gid) => {
     `https://docs.google.com/spreadsheets/d/${KEY}/export?format=csv&gid=${gid}&_=${nonce}`
   ];
 };
-function fetchWithTimeout(url, timeout=8000){
+/* =========================
+   FETCH optimizado (Prioridad 100% GVIZ Fresco)
+   ========================= */
+function fetchWithTimeout(url, timeout=15000){ // Aumentado a 15 segundos
   const ctrl = new AbortController();
   const to = setTimeout(()=>ctrl.abort(), timeout);
-  const proxyNonce = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const proxyUrl = PROXY + encodeURIComponent(url) + '&cb=' + encodeURIComponent(proxyNonce);
-
-  return fetch(proxyUrl, {
-    signal: ctrl.signal,
-    cache: 'no-store',
-    credentials: 'omit'
-  }).then(r=>{
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    return r.text();
-  }).finally(()=> clearTimeout(to));
-}
-async function fetchCsvAny(gid, timeoutEach=8000){
-  const urls = csvUrls(gid);
-  let lastError = null;
-
-  // NO usar Promise.race ni aceptar la primera respuesta al azar.
-  // Se consulta GViz y solo si falla se intenta la exportación CSV.
-  for(const url of urls){
-    try{
-      const txt = await fetchWithTimeout(url, timeoutEach);
-      if(txt && !txt.trimStart().startsWith('<')){
-        return txt;
-      }
-      throw new Error('Respuesta inválida');
-    }catch(err){
-      lastError = err;
-    }
-  }
-
-  throw lastError || new Error('No fue posible leer la hoja');
+  return fetch(PROXY + encodeURIComponent(url), {signal:ctrl.signal, cache:'no-store', credentials:'omit'})
+    .then(r=>{clearTimeout(to); if(!r.ok) throw new Error('HTTP '+r.status); return r.text()});
 }
 
-/* Fetch por "sheet + range" (robusto, evita depender de gid para Configuracion) */
-function rangeUrlsBySheet(sheetName, rangeA1){
+async function fetchCsvAny(gid, timeoutEach=15000){
+  const ts = Date.now();
+  // SOLO GVIZ: Eliminamos el "export" porque Google lo guarda en caché y devuelve datos viejos
+  const urlGviz = `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&gid=${gid}&_=${ts}`;
+
+  const txt = await fetchWithTimeout(urlGviz, timeoutEach);
+  if(txt && !txt.trimStart().startsWith('<')) return txt;
+  throw new Error('Respuesta inválida');
+}
+
+async function fetchCsvBySheetRange(sheetName, rangeA1, timeoutEach=10000){
   const ts = Date.now();
   const s = encodeURIComponent(sheetName);
   const r = encodeURIComponent(rangeA1);
-  // gviz soporta sheet + range muy bien (ideal para celdas sueltas)
-  return [
-    `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&sheet=${s}&range=${r}&_=${ts}`,
-    // fallback: a veces sheet+range funciona también en export
-    `https://docs.google.com/spreadsheets/d/${KEY}/export?format=csv&sheet=${s}&range=${r}&_=${ts}`
-  ];
+  const urlGviz = `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&sheet=${s}&range=${r}&_=${ts}`;
+  const urlExport = `https://docs.google.com/spreadsheets/d/${KEY}/export?format=csv&sheet=${s}&range=${r}&_=${ts}`;
+
+  try {
+    const txt = await fetchWithTimeout(urlGviz, timeoutEach);
+    if(txt && !txt.trimStart().startsWith('<')) return txt;
+  } catch(e) {}
+
+  const txt2 = await fetchWithTimeout(urlExport, timeoutEach);
+  if(txt2 && !txt2.trimStart().startsWith('<')) return txt2;
+  throw new Error('Respuesta inválida');
 }
 async function fetchCsvBySheetRange(sheetName, rangeA1, timeoutEach=5500){
   const urls = rangeUrlsBySheet(sheetName, rangeA1);
@@ -1136,10 +1124,12 @@ async function loadWhatsAppDigitsStrict(){
 
 
 /* Recalcular altura del header cuando aparece/desaparece el carrito */
+/* Recalcular altura del header cuando aparece/desaparece el carrito */
 function recalcHeaderHeightDynamic(){
   const hEl = document.querySelector('header');
   if(!hEl) return;
-  const h = Math.max(70, Math.round(hEl.getBoundingClientRect().height));
+  // Añadimos +25px de margen extra absoluto para que nada quede oculto
+  const h = Math.max(70, Math.round(hEl.getBoundingClientRect().height) + 25);
   document.documentElement.style.setProperty('--header-h', h + 'px');
 }
 
