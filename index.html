@@ -779,13 +779,13 @@ const CACHE_META = Object.freeze({
   path: location.pathname
 });
 
-const MAP_CACHE_KEY   = `${CACHE_NS}_map_v5`;
-const CONF_CACHE_KEY  = `${CACHE_NS}_conf_v3`;
-const LOGO_CACHE_KEY  = `${CACHE_NS}_logo_v3`;
-const BLOCK_CACHE_KEY = `${CACHE_NS}_block_v3`;
+const MAP_CACHE_KEY   = `${CACHE_NS}_map_v3`;
+const CONF_CACHE_KEY  = `${CACHE_NS}_conf_v1`;
+const LOGO_CACHE_KEY  = `${CACHE_NS}_logo_v1`;
+const BLOCK_CACHE_KEY = `${CACHE_NS}_block_v1`;
 
 // Daily también debe ser por página (no solo por fecha)
-function dailyKey(){ return `${CACHE_NS}_daily_v5_${todayKey()}`; }
+function dailyKey(){ return `${CACHE_NS}_daily_${todayKey()}`; }
 
 function cacheMetaOK(meta){
   return !!meta && meta.KEY===KEY && meta.GID_RAFFLES===GID_RAFFLES && meta.GID_CONFIG===GID_CONFIG && meta.GID_NOTIFICATIONS===GID_NOTIFICATIONS && meta.path===location.pathname;
@@ -975,41 +975,46 @@ const csvUrls = (gid) => {
     `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&gid=${gid}&_=${ts}`
   ];
 };
-/* =========================
-   FETCH optimizado (Prioridad 100% GVIZ Fresco)
-   ========================= */
-function fetchWithTimeout(url, timeout=15000){ // Aumentado a 15 segundos
+function fetchWithTimeout(url, timeout=6000){
   const ctrl = new AbortController();
   const to = setTimeout(()=>ctrl.abort(), timeout);
   return fetch(PROXY + encodeURIComponent(url), {signal:ctrl.signal, cache:'no-store', credentials:'omit'})
     .then(r=>{clearTimeout(to); if(!r.ok) throw new Error('HTTP '+r.status); return r.text()});
 }
-
-async function fetchCsvAny(gid, timeoutEach=15000){
-  const ts = Date.now();
-  // SOLO GVIZ: Eliminamos el "export" porque Google lo guarda en caché y devuelve datos viejos
-  const urlGviz = `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&gid=${gid}&_=${ts}`;
-
-  const txt = await fetchWithTimeout(urlGviz, timeoutEach);
-  if(txt && !txt.trimStart().startsWith('<')) return txt;
-  throw new Error('Respuesta inválida');
+async function fetchCsvAny(gid, timeoutEach=6000){
+  const urls = csvUrls(gid);
+  const attempts = urls.map(u => fetchWithTimeout(u, timeoutEach).then(txt=>{
+    if(txt && !txt.trimStart().startsWith('<')) return txt;
+    throw new Error('Respuesta inválida');
+  }));
+  return new Promise((resolve, reject)=>{
+    let rej=0, reason=null;
+    attempts.forEach(p => p.then(resolve).catch(e=>{reason=e; if(++rej===attempts.length) reject(reason)}));
+  });
 }
 
-async function fetchCsvBySheetRange(sheetName, rangeA1, timeoutEach=10000){
+/* Fetch por "sheet + range" (robusto, evita depender de gid para Configuracion) */
+function rangeUrlsBySheet(sheetName, rangeA1){
   const ts = Date.now();
   const s = encodeURIComponent(sheetName);
   const r = encodeURIComponent(rangeA1);
-  const urlGviz = `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&sheet=${s}&range=${r}&_=${ts}`;
-  const urlExport = `https://docs.google.com/spreadsheets/d/${KEY}/export?format=csv&sheet=${s}&range=${r}&_=${ts}`;
-
-  try {
-    const txt = await fetchWithTimeout(urlGviz, timeoutEach);
+  // gviz soporta sheet + range muy bien (ideal para celdas sueltas)
+  return [
+    `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&sheet=${s}&range=${r}&_=${ts}`,
+    // fallback: a veces sheet+range funciona también en export
+    `https://docs.google.com/spreadsheets/d/${KEY}/export?format=csv&sheet=${s}&range=${r}&_=${ts}`
+  ];
+}
+async function fetchCsvBySheetRange(sheetName, rangeA1, timeoutEach=5500){
+  const urls = rangeUrlsBySheet(sheetName, rangeA1);
+  const attempts = urls.map(u => fetchWithTimeout(u, timeoutEach).then(txt=>{
     if(txt && !txt.trimStart().startsWith('<')) return txt;
-  } catch(e) {}
-
-  const txt2 = await fetchWithTimeout(urlExport, timeoutEach);
-  if(txt2 && !txt2.trimStart().startsWith('<')) return txt2;
-  throw new Error('Respuesta inválida');
+    throw new Error('Respuesta inválida');
+  }));
+  return new Promise((resolve, reject)=>{
+    let rej=0, reason=null;
+    attempts.forEach(p => p.then(resolve).catch(e=>{reason=e; if(++rej===attempts.length) reject(reason)}));
+  });
 }
 
 /* =========================
@@ -1097,13 +1102,10 @@ async function loadWhatsAppDigitsStrict(){
 
 
 /* Recalcular altura del header cuando aparece/desaparece el carrito */
-/* Recalcular altura del header cuando aparece/desaparece el carrito */
-/* Recalcular altura del header cuando aparece/desaparece el carrito */
 function recalcHeaderHeightDynamic(){
   const hEl = document.querySelector('header');
   if(!hEl) return;
-  // Añadimos +25px de margen extra absoluto para que nada quede oculto
-  const h = Math.max(70, Math.round(hEl.getBoundingClientRect().height) + 25);
+  const h = Math.max(70, Math.round(hEl.getBoundingClientRect().height));
   document.documentElement.style.setProperty('--header-h', h + 'px');
 }
 
@@ -1419,9 +1421,7 @@ function setAllFromFreeList(freeList){
   for(const n of freeList){ map[n] = 'libre'; }
   ALL = map;
 }
-
-// 👇 1. CAMBIO AQUÍ: Cambiamos el target de 240 a 500
-function sampleDailyFromFreeList(freeList, target=500){
+function sampleDailyFromFreeList(freeList, target=240){
   const L = freeList.length;
   if(L<=target) return [...freeList];
   const out = freeList.slice(0, target);
@@ -1431,12 +1431,10 @@ function sampleDailyFromFreeList(freeList, target=500){
   }
   return out;
 }
-
 function persistDaily(){
   const key = dailyKey();
   try{ localStorage.setItem(key, JSON.stringify(DAILY||[])) }catch(_){}
 }
-
 function loadDailyFromCache(){
   const key = dailyKey();
   try{
@@ -1449,14 +1447,10 @@ function loadDailyFromCache(){
   }catch(_){}
   return false;
 }
-
 function pickDaily(force=false){
   if(!force && loadDailyFromCache()) return;
   const libres = Object.keys(ALL||{}).filter(k=>ALL[k]==='libre');
-  
-  // 👇 2. CAMBIO AQUÍ: Obligamos a tomar 500 números de la lista
-  DAILY = sampleDailyFromFreeList(libres, 500); 
-  
+  DAILY = sampleDailyFromFreeList(libres, 240);
   persistDaily();
 }
 
@@ -1467,36 +1461,48 @@ async function syncMapFast(){
   try{
     const txt = await fetchCsvAny(GID_RAFFLES, 6000);
     const rows = parseCSV(txt);
-    if(rows.length < 2) return;
-    const freeList=[];
-    for(let i=1;i<rows.length;i++){
-          const r=rows[i]||[]; const a=(r[0]??'').toString().trim(); const b=(r[1]??'').toString().trim();
-          if(!a) continue; let digits=a.replace(/\D/g,''); if(!digits) continue;
-      if(digits.length>4) digits=digits.slice(0,4);
-      const num=digits.padStart(4,'0');
-      if (normStatusAB(b)==='libre') freeList.push(num);
+
+    if(rows.length < 2){
+      throw new Error('La hoja de rifas no devolvió datos');
     }
-    saveMapCache(freeList);
-    setAllFromFreeList(freeList);
-    
-    // Guardamos el estado anterior para saber si algo cambió
-    const beforeStr = JSON.stringify(DAILY);
-    
-    // Filtramos los que ya se ocuparon
-    DAILY = DAILY.filter(n=>ALL[n]==='libre');
-    
-    // BUG FIX: Si DAILY se vació, o si ahora hay MÁS números libres en Sheets 
-    // de los que estamos mostrando (hasta el límite de 500), recargamos la vista.
-    const totalLibres = freeList.length;
-    if(DAILY.length === 0 || (DAILY.length < 500 && DAILY.length < totalLibres)){ 
-        pickDaily(true); 
+
+    const freeList = [];
+
+    for(let i = 1; i < rows.length; i++){
+      const r = rows[i] || [];
+      const a = (r[0] ?? '').toString().trim();
+      const b = (r[1] ?? '').toString().trim();
+
+      if(!a) continue;
+
+      let digits = a.replace(/\D/g, '');
+      if(!digits) continue;
+      if(digits.length > 4) digits = digits.slice(0, 4);
+
+      const num = digits.padStart(4, '0');
+
+      if(normStatusAB(b) === 'libre'){
+        freeList.push(num);
+      }
     }
-    
-    // Si la lista de números a mostrar cambió, renderizamos la grilla
-    if(JSON.stringify(DAILY) !== beforeStr){ 
-        renderGrid(); 
-    }
-  }catch(_){ }
+
+    // Quitar posibles números duplicados antes de construir el mapa.
+    const uniqueFreeList = Array.from(new Set(freeList));
+
+    saveMapCache(uniqueFreeList);
+    setAllFromFreeList(uniqueFreeList);
+
+    // Reemplazar por completo la lista visible con los datos actuales.
+    DAILY = sampleDailyFromFreeList(uniqueFreeList, 240);
+
+    persistDaily();
+    renderGrid();
+    return true;
+
+  }catch(err){
+    console.error('No fue posible sincronizar las boletas:', err);
+    return false;
+  }
 }
 
 /* =========================
@@ -1730,25 +1736,25 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   bootSet(10, 'Iniciando…', 'Verificando estado y preparando interfaz');
 
   function updateHeaderPadding(){ recalcHeaderHeightDynamic(); }
-  
-  // 👇 NUEVO: Observador constante para el banner superior
-  const headObserver = document.querySelector('header');
-  if(headObserver && window.ResizeObserver){
-    new ResizeObserver(() => updateHeaderPadding()).observe(headObserver);
-  }
-
   function applyViewportOffset(){
     let top = 0;
+
     if (window.visualViewport){
       const vv = window.visualViewport;
+
+      // ✅ Solo aplicar offset cuando realmente parece teclado abierto.
+      // En iOS Safari, offsetTop cambia durante el scroll normal por la barra del navegador.
       const keyboardLikely = (window.innerHeight - vv.height) > 120;
+
       if (keyboardLikely){
         top = Math.max(0, Math.round(vv.offsetTop || 0));
+        // ✅ Clamp defensivo para evitar valores locos que crean “velos” gigantes/parpadeos
         top = Math.min(top, 180);
       } else {
         top = 0;
       }
     }
+
     document.documentElement.style.setProperty('--vv-top', top + 'px');
     updateHeaderPadding();
   }
@@ -1864,27 +1870,42 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     });
   }
 
-  // ARRANQUE EXPRESS (con boot)
-  bootSet(60, 'Cargando boletas…', 'Usando caché para abrir ultra rápido');
-  DAY_MARK=todayKey();
+  // ARRANQUE: esperar la sincronización real antes de mostrar la página.
+  // El caché se conserva únicamente como respaldo si falla la conexión.
+  bootSet(60, 'Cargando boletas…', 'Consultando la disponibilidad actual');
+  DAY_MARK = todayKey();
 
-  const mcache=loadMapCache();
-  if(mcache?.freeList){
-    setAllFromFreeList(mcache.freeList);
-    pickDaily(true);
-    renderGrid();
-    bootSet(82, 'Sincronizando disponibilidad…', 'Actualizando datos en segundo plano');
-    if(mcache.stale){ (window.requestIdleCallback? requestIdleCallback(syncMapFast): setTimeout(syncMapFast,0)); }
-    else setTimeout(syncMapFast, 1500);
-  }else{
-    const wrap=document.getElementById('raffles');
-    const frag=document.createDocumentFragment();
-    for(let i=0;i<24;i++){ const s=document.createElement('div'); s.className='raffle'; s.innerHTML='<span>----</span>'; frag.appendChild(s); }
+  const mcache = loadMapCache();
+  const wrap = document.getElementById('raffles');
+
+  // Mostrar esqueletos mientras se consulta Google Sheets.
+  if(wrap){
+    wrap.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    for(let i = 0; i < 24; i++){
+      const s = document.createElement('div');
+      s.className = 'raffle';
+      s.innerHTML = '<span>----</span>';
+      frag.appendChild(s);
+    }
     wrap.appendChild(frag);
-    bootSet(72, 'Descargando disponibilidad…', 'Primera carga (solo esta vez)');
-    await syncMapFast();
-    pickDaily(true);
-    renderGrid();
+  }
+
+  bootSet(72, 'Descargando disponibilidad…', 'Leyendo todos los números libres');
+  const mapSynced = await syncMapFast();
+
+  if(!mapSynced){
+    // Respaldo: usar caché solamente si la lectura remota realmente falló.
+    if(mcache?.freeList){
+      setAllFromFreeList(mcache.freeList);
+      DAILY = sampleDailyFromFreeList(mcache.freeList, 240);
+      persistDaily();
+      renderGrid();
+    }else{
+      DAILY = [];
+      if(wrap) wrap.innerHTML = '';
+      msg('No fue posible cargar la disponibilidad. Intenta nuevamente.', true);
+    }
   }
 
   bootSet(95, 'Finalizando…', 'Todo listo');
@@ -1901,8 +1922,3 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   </script>
 </body>
 </html>
-
-
-
-
-
