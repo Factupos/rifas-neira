@@ -1480,10 +1480,24 @@ async function syncMapFast(){
     }
     saveMapCache(freeList);
     setAllFromFreeList(freeList);
-    const before=DAILY.length;
+    
+    // Guardamos el estado anterior para saber si algo cambió
+    const beforeStr = JSON.stringify(DAILY);
+    
+    // Filtramos los que ya se ocuparon
     DAILY = DAILY.filter(n=>ALL[n]==='libre');
-    if(DAILY.length===0){ pickDaily(true); }
-    if(DAILY.length!==before){ renderGrid(); }
+    
+    // BUG FIX: Si DAILY se vació, o si ahora hay MÁS números libres en Sheets 
+    // de los que estamos mostrando (hasta el límite de 500), recargamos la vista.
+    const totalLibres = freeList.length;
+    if(DAILY.length === 0 || (DAILY.length < 500 && DAILY.length < totalLibres)){ 
+        pickDaily(true); 
+    }
+    
+    // Si la lista de números a mostrar cambió, renderizamos la grilla
+    if(JSON.stringify(DAILY) !== beforeStr){ 
+        renderGrid(); 
+    }
   }catch(_){ }
 }
 
