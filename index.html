@@ -736,6 +736,8 @@ body.search-has-text #raffles{ display:none !important; } /* << solo mostrar sel
 /* =========================================================
    ✅ CONFIG (VISIBLES AL INICIO — como pediste)
    ========================================================= */
+const APP_BUILD = 'CARGA_INMEDIATA_V2_2026-07-14';
+console.info('[Rifas] Versión:', APP_BUILD);
 const KEY = '1MyOkJrGpeY1ZXQVFq_srndALEh6Nzzir8sFSfu-0EVM';
 const GID_RAFFLES = '1661037065';   // A: Número, B: Libre/Asignado
 const GID_CONFIG  = '1842804307';    // Config_Publica
@@ -968,29 +970,61 @@ function showBlockedScreen(reasonText){
 /* =========================
    FETCH optimizado (parallel + timeout)
    ========================= */
+/*
+ * IMPORTANTE:
+ * Google ofrece dos formas de descargar la hoja. Antes se lanzaban ambas al
+ * mismo tiempo y se aceptaba la primera que respondiera. Si la exportación
+ * CSV devolvía una versión atrasada con solo 9676 y 9938, esa respuesta
+ * ganaba y la respuesta actual de GViz se descartaba.
+ *
+ * Ahora GViz es la fuente principal y la exportación CSV es únicamente un
+ * respaldo. Además, tanto la URL de Google como la URL del proxy reciben un
+ * identificador irrepetible para impedir respuestas reutilizadas.
+ */
 const csvUrls = (gid) => {
-  const ts = Date.now();
+  const nonce = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   return [
-    `https://docs.google.com/spreadsheets/d/${KEY}/export?format=csv&gid=${gid}&_=${ts}`,
-    `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&gid=${gid}&_=${ts}`
+    // Fuente principal: normalmente refleja los cambios de la hoja primero.
+    `https://docs.google.com/spreadsheets/d/${KEY}/gviz/tq?tqx=out:csv&gid=${gid}&tq=${encodeURIComponent('select *')}&_=${nonce}`,
+
+    // Respaldo: se usa solamente si GViz falla de verdad.
+    `https://docs.google.com/spreadsheets/d/${KEY}/export?format=csv&gid=${gid}&_=${nonce}`
   ];
 };
-function fetchWithTimeout(url, timeout=6000){
+function fetchWithTimeout(url, timeout=8000){
   const ctrl = new AbortController();
   const to = setTimeout(()=>ctrl.abort(), timeout);
-  return fetch(PROXY + encodeURIComponent(url), {signal:ctrl.signal, cache:'no-store', credentials:'omit'})
-    .then(r=>{clearTimeout(to); if(!r.ok) throw new Error('HTTP '+r.status); return r.text()});
+  const proxyNonce = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const proxyUrl = PROXY + encodeURIComponent(url) + '&cb=' + encodeURIComponent(proxyNonce);
+
+  return fetch(proxyUrl, {
+    signal: ctrl.signal,
+    cache: 'no-store',
+    credentials: 'omit'
+  }).then(r=>{
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.text();
+  }).finally(()=> clearTimeout(to));
 }
-async function fetchCsvAny(gid, timeoutEach=6000){
+async function fetchCsvAny(gid, timeoutEach=8000){
   const urls = csvUrls(gid);
-  const attempts = urls.map(u => fetchWithTimeout(u, timeoutEach).then(txt=>{
-    if(txt && !txt.trimStart().startsWith('<')) return txt;
-    throw new Error('Respuesta inválida');
-  }));
-  return new Promise((resolve, reject)=>{
-    let rej=0, reason=null;
-    attempts.forEach(p => p.then(resolve).catch(e=>{reason=e; if(++rej===attempts.length) reject(reason)}));
-  });
+  let lastError = null;
+
+  // NO usar Promise.race ni aceptar la primera respuesta al azar.
+  // Se consulta GViz y solo si falla se intenta la exportación CSV.
+  for(const url of urls){
+    try{
+      const txt = await fetchWithTimeout(url, timeoutEach);
+      if(txt && !txt.trimStart().startsWith('<')){
+        return txt;
+      }
+      throw new Error('Respuesta inválida');
+    }catch(err){
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('No fue posible leer la hoja');
 }
 
 /* Fetch por "sheet + range" (robusto, evita depender de gid para Configuracion) */
@@ -1459,7 +1493,7 @@ function pickDaily(force=false){
    ========================= */
 async function syncMapFast(){
   try{
-    const txt = await fetchCsvAny(GID_RAFFLES, 6000);
+    const txt = await fetchCsvAny(GID_RAFFLES, 9000);
     const rows = parseCSV(txt);
 
     if(rows.length < 2){
@@ -1877,6 +1911,11 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
   const mcache = loadMapCache();
   const wrap = document.getElementById('raffles');
+
+  // Nunca reutilizar DAILY durante el arranque. La pantalla solo se libera
+  // después de construir DAILY con la lectura actual de Google Sheets.
+  DAILY = [];
+  ALL = {};
 
   // Mostrar esqueletos mientras se consulta Google Sheets.
   if(wrap){
