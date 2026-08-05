@@ -4340,18 +4340,65 @@ if (mcache?.freeList && mcache.freeList.length > 0) {
 
   renderGrid();
     bootSet(82, 'Sincronizando disponibilidad…', 'Actualizando datos en segundo plano');
-    if(mcache.stale){ (window.requestIdleCallback? requestIdleCallback(syncMapFast): setTimeout(syncMapFast,0)); }
-    else setTimeout(syncMapFast, 1500);
-  }else{
-    const wrap=document.getElementById('raffles');
-    const frag=document.createDocumentFragment();
-    for(let i=0;i<24;i++){ const s=document.createElement('div'); s.className='raffle'; s.innerHTML='<span>----</span>'; frag.appendChild(s); }
-    wrap.appendChild(frag);
-    bootSet(72, 'Descargando disponibilidad…', 'Primera carga (solo esta vez)');
-    await syncMapFast();
+    if (mcache.stale) {
+  if (window.requestIdleCallback) {
+    requestIdleCallback(() => syncMapFast());
+  } else {
+    setTimeout(() => syncMapFast(), 0);
+  }
+} else {
+  setTimeout(() => syncMapFast(), 1500);
+}
+  } else {
+  const wrap = document.getElementById('raffles');
+  const frag = document.createDocumentFragment();
+
+  for (let i = 0; i < 24; i++) {
+    const skeleton = document.createElement('div');
+    skeleton.className = 'raffle';
+    skeleton.innerHTML = '<span>----</span>';
+    frag.appendChild(skeleton);
+  }
+
+  /*
+   * replaceChildren evita acumular esqueletos
+   * si este bloque llegara a ejecutarse nuevamente.
+   */
+  wrap.replaceChildren(frag);
+
+  bootSet(
+    72,
+    'Descargando disponibilidad…',
+    'Primera carga (solo esta vez)'
+  );
+
+  const updated = await syncMapFast();
+
+  /*
+   * Solo reconstruimos la selección si realmente llegó
+   * una respuesta correcta desde Google Sheets.
+   */
+  if (updated) {
     pickDaily(true);
     renderGrid();
+  } else {
+    console.warn(
+      'No fue posible completar la primera sincronización. Se intentará nuevamente.'
+    );
+
+    /*
+     * Segundo intento breve sin borrar lo que ya está en pantalla.
+     */
+    setTimeout(async () => {
+      const retryUpdated = await syncMapFast();
+
+      if (retryUpdated) {
+        pickDaily(true);
+        renderGrid();
+      }
+    }, 3000);
   }
+}
 
   bootSet(95, 'Finalizando…', 'Todo listo');
   setTimeout(()=> bootHide(), 220);
