@@ -3085,6 +3085,14 @@ let MAP_TIMER = null;
 let MODAL_OPEN = false;
 let DAY_MARK = null;
 
+/* =========================================================
+   CONTROL DE SINCRONIZACIÓN
+   Evita consultas simultáneas y listas vacías temporales
+   ========================================================= */
+let MAP_SYNC_RUNNING = false;
+let LAST_VALID_FREE_LIST = [];
+let LAST_MAP_SYNC_AT = 0;
+
 /* Carrito de compras */
 let CART_ACTIVE = false;
 let CART_ITEMS = [];
@@ -3594,13 +3602,42 @@ function makeTile(num, large){
   el.addEventListener('click', (ev)=> onTileTap(el, p, el._lastPt || {x:ev.clientX, y:ev.clientY}), {passive:true});
   return el;
 }
-function renderGrid(){
-  const wrap=document.getElementById('raffles'); if(!wrap) return;
-  if(document.body.classList.contains('search-has-text') || MODAL_OPEN) return;
-  wrap.innerHTML='';
-  const frag = document.createDocumentFragment();
-  for(const n of DAILY){ frag.appendChild(makeTile(n,false)); }
-  wrap.appendChild(frag);
+function renderGrid() {
+  const wrap = document.getElementById('raffles');
+
+  if (!wrap) return;
+
+  if (
+    document.body.classList.contains('search-has-text') ||
+    MODAL_OPEN
+  ) {
+    return;
+  }
+
+  /*
+   * Nunca vaciar la grilla si DAILY está temporalmente vacía
+   * pero ya existen números dibujados.
+   */
+  if (!Array.isArray(DAILY) || DAILY.length === 0) {
+    if (wrap.querySelector('.raffle[data-num]')) {
+      console.warn(
+        'Render vacío descartado: se mantienen los números visibles.'
+      );
+      return;
+    }
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  for (const number of DAILY) {
+    fragment.appendChild(makeTile(number, false));
+  }
+
+  /*
+   * replaceChildren hace el cambio en una sola operación.
+   * Evita el instante visual vacío producido por innerHTML = "".
+   */
+  wrap.replaceChildren(fragment);
 }
 function renderSearchOne(num){
   const layer=document.getElementById('searchResult');
@@ -3704,26 +3741,180 @@ function pickDaily(force=false){
 /* =========================
    Sincronización remota
    ========================= */
-async function syncMapFast(){
-  try{
-    const txt = await fetchCsvAny(GID_RAFFLES, 6000);
-    const rows = parseCSV(txt);
-    if(rows.length < 2) return;
-    const freeList=[];
-    for(let i=1;i<rows.length;i++){
-      const r=rows[i]||[]; const a=(r[0]??'').toString().trim(); const b=(r[1]??'').toString().trim();
-      if(!a) continue; let digits=a.replace(/\D/g,''); if(!digits) continue;
-      if(digits.length>4) digits=digits.slice(0,4);
-      const num=digits.padStart(4,'0');
-      if (normStatusAB(b)==='libre') freeList.push(num);
+async function syncMapFast(options = {}) {
+  const force = options.force === true;
+
+  /*
+   * Evita que una sincronización nueva comience mientras la anterior
+   * todavía está esperando respuesta de Google Sheets.
+   */
+  if (MAP_SYNC_RUNNING && !force) {
+    return false;
+  }
+
+  MAP_SYNC_RUNNING = true;
+
+  try {
+    const txt = await fetchCsvAny(GID_RAFFLES, 7000);
+
+    if (!txt || typeof txt !== 'string') {
+      throw new Error('La respuesta de disponibilidad está vacía');
     }
+
+    if (txt.trimStart().startsWith('<')) {
+      throw new Error('Google devolvió HTML en lugar de CSV');
+    }
+
+    const rows = parseCSV(txt);
+
+    /*
+     * Debe existir por lo menos encabezado y una fila de información.
+     * Si no, conservamos los números que ya están visibles.
+     */
+    if (!Array.isArray(rows) || rows.length < 2) {
+      throw new Error('El CSV no contiene suficientes filas');
+    }
+
+    const freeSet = new Set();
+    let validDataRows = 0;
+    let recognizedStatusRows = 0;
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i] || [];
+
+      const rawNumber = String(row[0] ?? '').trim();
+      const rawStatus = String(row[1] ?? '').trim().toLowerCase();
+
+      if (!rawNumber) continue;
+
+      let digits = rawNumber.replace(/\D/g, '');
+
+      if (!digits) continue;
+
+      /*
+       * La boleta debe tener máximo cuatro dígitos.
+       * Si llega un valor extraño, esa fila no se utiliza.
+       */
+      if (digits.length > 4) continue;
+
+      const number = digits.padStart(4, '0');
+
+      validDataRows++;
+
+      if (
+        rawStatus === 'libre' ||
+        rawStatus === 'asignado' ||
+        rawStatus === 'ocupado'
+      ) {
+        recognizedStatusRows++;
+      }
+
+      if (rawStatus === 'libre') {
+        freeSet.add(number);
+      }
+    }
+
+    const freeList = Array.from(freeSet).sort();
+
+    /*
+     * Validación de estructura:
+     * si casi ninguna fila tiene estado reconocido, probablemente
+     * Google o el proxy devolvieron otra hoja o un CSV incorrecto.
+     */
+    if (
+      validDataRows === 0 ||
+      recognizedStatusRows === 0 ||
+      recognizedStatusRows < Math.min(validDataRows, 3)
+    ) {
+      throw new Error('La respuesta no contiene estados válidos');
+    }
+
+    /*
+     * Protección fundamental:
+     *
+     * Si actualmente hay números libres visibles y una consulta nueva
+     * afirma repentinamente que no existe ninguno, no borramos la pantalla.
+     *
+     * Una rifa puede realmente quedarse sin números libres, pero una
+     * respuesta vacía aislada debe confirmarse antes de aceptarse.
+     */
+    const previousFreeList =
+      LAST_VALID_FREE_LIST.length > 0
+        ? LAST_VALID_FREE_LIST
+        : Object.keys(ALL || {}).filter(number => ALL[number] === 'libre');
+
+    if (freeList.length === 0 && previousFreeList.length > 0) {
+      console.warn(
+        'Sincronización descartada: llegó una lista vacía temporal.',
+        {
+          anteriores: previousFreeList.length,
+          filasRecibidas: rows.length
+        }
+      );
+
+      return false;
+    }
+
+    /*
+     * Solo después de pasar todas las validaciones se reemplaza
+     * la información que está usando la interfaz.
+     */
+    LAST_VALID_FREE_LIST = freeList.slice();
+    LAST_MAP_SYNC_AT = Date.now();
+
     saveMapCache(freeList);
     setAllFromFreeList(freeList);
-    const before=DAILY.length;
-    DAILY = DAILY.filter(n=>ALL[n]==='libre');
-    if(DAILY.length===0){ pickDaily(true); }
-    if(DAILY.length!==before){ renderGrid(); }
-  }catch(_){ }
+
+    const previousDaily = DAILY.slice();
+
+    /*
+     * Conserva los números visibles que todavía siguen libres.
+     */
+    DAILY = DAILY.filter(number => ALL[number] === 'libre');
+
+    /*
+     * Si todavía no existe una selección diaria, se genera usando
+     * únicamente la respuesta ya validada.
+     */
+    if (DAILY.length === 0 && freeList.length > 0) {
+      DAILY = sampleDailyFromFreeList(freeList, 240);
+      persistDaily();
+    }
+
+    /*
+     * Si había pocos números libres, garantiza que todos aparezcan.
+     * Ejemplo: si existen 78, muestra los 78.
+     */
+    if (freeList.length <= 240) {
+      DAILY = freeList.slice();
+      persistDaily();
+    }
+
+    const changed =
+      previousDaily.length !== DAILY.length ||
+      previousDaily.some((number, index) => number !== DAILY[index]);
+
+    if (changed) {
+      renderGrid();
+    }
+
+    return true;
+
+  } catch (error) {
+    /*
+     * En un fallo de red no limpiamos ALL, DAILY ni el contenedor.
+     * La última información correcta continúa en pantalla.
+     */
+    console.warn(
+      'No se actualizó la disponibilidad. Se conserva la última lista válida.',
+      error
+    );
+
+    return false;
+
+  } finally {
+    MAP_SYNC_RUNNING = false;
+  }
 }
 
 /* =========================
@@ -4133,11 +4324,21 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   bootSet(60, 'Cargando boletas…', 'Usando caché para abrir ultra rápido');
   DAY_MARK=todayKey();
 
-  const mcache=loadMapCache();
-  if(mcache?.freeList){
-    setAllFromFreeList(mcache.freeList);
+  const mcache = loadMapCache();
+
+if (mcache?.freeList && mcache.freeList.length > 0) {
+  LAST_VALID_FREE_LIST = mcache.freeList.slice();
+
+  setAllFromFreeList(mcache.freeList);
+
+  if (mcache.freeList.length <= 240) {
+    DAILY = mcache.freeList.slice();
+    persistDaily();
+  } else {
     pickDaily(true);
-    renderGrid();
+  }
+
+  renderGrid();
     bootSet(82, 'Sincronizando disponibilidad…', 'Actualizando datos en segundo plano');
     if(mcache.stale){ (window.requestIdleCallback? requestIdleCallback(syncMapFast): setTimeout(syncMapFast,0)); }
     else setTimeout(syncMapFast, 1500);
@@ -4156,12 +4357,45 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   setTimeout(()=> bootHide(), 220);
 
   // Refrescos suaves
-  GRID_TIMER=setInterval(()=>renderGrid(), 20000);
-  MAP_TIMER=setInterval(async ()=>{
-    const nowKey=todayKey();
-    if(nowKey!==DAY_MARK){ DAY_MARK=nowKey; await syncMapFast(); DAILY=[]; pickDaily(true); renderGrid(); return; }
-    const before=DAILY.length; await syncMapFast(); if(DAILY.length!==before){ renderGrid(); }
-  }, 20000);
+  // =========================================================
+// ACTUALIZACIÓN PERIÓDICA SEGURA
+// =========================================================
+
+/*
+ * No es necesario volver a dibujar la grilla cada 20 segundos.
+ * syncMapFast() la actualizará únicamente cuando haya cambios reales.
+ */
+if (GRID_TIMER) {
+  clearInterval(GRID_TIMER);
+  GRID_TIMER = null;
+}
+
+if (MAP_TIMER) {
+  clearInterval(MAP_TIMER);
+}
+
+MAP_TIMER = setInterval(async () => {
+  if (document.hidden) return;
+  if (MAP_SYNC_RUNNING) return;
+
+  const nowKey = todayKey();
+
+  if (nowKey !== DAY_MARK) {
+    DAY_MARK = nowKey;
+
+    const updated = await syncMapFast();
+
+    if (updated) {
+      pickDaily(true);
+      renderGrid();
+    }
+
+    return;
+  }
+
+  await syncMapFast();
+
+}, 30000);
 });
   </script>
 </body>
