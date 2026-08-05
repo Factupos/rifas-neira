@@ -1083,18 +1083,33 @@ function msg(text, error=false){
 function hideMsg(){ const el = document.getElementById('message'); if(!el) return; clearTimeout(msg._t); el.style.display='none'; }
 function parseCSV(text){
   if (text.trimStart().startsWith('<')) return [];
+  
+  // Solución Robusta: Autodetectar el delimitador (, o ;) basado en la primera línea
+  const firstLine = text.split('\n')[0] || '';
+  const delimiter = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
+  
   const rows=[]; let i=0,cur='',inQ=false; const push=()=>{ rows[rows.length-1].push(cur); cur='' };
   rows.push([]);
   while(i<text.length){
     const c=text[i];
-    if(inQ){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++} else inQ=false } else cur+=c; }
-    else{ if(c==='"'){ inQ=true } else if(c===','){ push() } else if(c==='\n'){ push(); rows.push([]) } else if(c!=='\r'){ cur+=c } }
+    if(inQ){ 
+      if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++} else inQ=false } else cur+=c; 
+    } else { 
+      if(c==='"'){ inQ=true } 
+      else if(c===delimiter){ push() } // Se usa el delimitador detectado dinámicamente
+      else if(c==='\n'){ push(); rows.push([]) } 
+      else if(c!=='\r'){ cur+=c } 
+    }
     i++;
   }
   push(); return rows.filter(r => r.some(x=>String(x).trim()!=='')); 
 }
 function makeBaseMap(){ const map={}; for(let i=0;i<10000;i++){ map[String(i).padStart(4,'0')]='ocupado' } return map }
-function normStatusAB(s){ const t=String(s??'').trim().toLowerCase(); return t==='libre' ? 'libre' : 'ocupado' }
+function normStatusAB(s){ 
+  const t = String(s??'').trim().toLowerCase(); 
+  // Usa includes() en lugar de === para ignorar espacios accidentales u otros caracteres
+  return t.includes('libre') ? 'libre' : 'ocupado'; 
+}
 function extractColombiaDigits(raw){
   const chunks=(String(raw||'').match(/\d+/g)||[]); let d=chunks.join(''); d=d.replace(/^00/,'');
   const m=d.match(/57(3\d{9})/); if(m) return '57'+m[1];
