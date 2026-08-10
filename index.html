@@ -3132,6 +3132,10 @@ let MAP_SYNC_RUNNING = false;
 let LAST_VALID_FREE_LIST = [];
 let LAST_MAP_SYNC_AT = 0;
 
+// TRUE únicamente después de recibir y validar
+// una fotografía completa de las 10.000 boletas.
+let HAS_VALID_AVAILABILITY = false;
+
 /* Carrito de compras */
 let CART_ACTIVE = false;
 let CART_ITEMS = [];
@@ -3653,36 +3657,76 @@ function renderGrid() {
     return;
   }
 
-  /*
-   * Si DAILY está vacío pero tenemos una lista válida,
-   * se reconstruye inmediatamente.
-   */
-  if (
-    (!Array.isArray(DAILY) || DAILY.length === 0) &&
-    LAST_VALID_FREE_LIST.length > 0
-  ) {
-    DAILY =
-      LAST_VALID_FREE_LIST.length <= 240
-        ? LAST_VALID_FREE_LIST.slice()
-        : sampleDailyFromFreeList(
-            LAST_VALID_FREE_LIST,
-            240
-          );
-
-    persistDaily();
-  }
-
-  /*
-   * Si no tenemos información válida todavía,
-   * no borramos lo existente.
-   */
-  if (!Array.isArray(DAILY) || DAILY.length === 0) {
+  // =========================================================
+  // TODAVÍA NO TENEMOS UNA LECTURA AUTORITATIVA
+  // =========================================================
+  if (!HAS_VALID_AVAILABILITY) {
+    wrap.replaceChildren();
     return;
   }
 
+  // =========================================================
+  // TENEMOS UNA LECTURA VÁLIDA Y REAL,
+  // PERO NO EXISTE NINGUNA BOLETA LIBRE.
+  // =========================================================
+  if (!Array.isArray(DAILY) || DAILY.length === 0) {
+    wrap.replaceChildren();
+
+    const empty = document.createElement('div');
+
+    empty.style.cssText = `
+      width: min(92vw, 520px);
+      margin: 30px auto;
+      padding: 28px 22px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.96);
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 12px 35px rgba(0,0,0,.08);
+      text-align: center;
+      color: var(--ink);
+    `;
+
+    empty.innerHTML = `
+      <div style="
+        font-size:42px;
+        margin-bottom:10px;
+      ">🎟️</div>
+
+      <div style="
+        font-size:21px;
+        font-weight:1000;
+        margin-bottom:7px;
+      ">
+        No hay boletas disponibles
+      </div>
+
+      <div style="
+        font-size:14px;
+        font-weight:700;
+        opacity:.68;
+        line-height:1.45;
+      ">
+        En este momento todas las boletas se encuentran ocupadas.
+      </div>
+    `;
+
+    wrap.appendChild(empty);
+    return;
+  }
+
+  // =========================================================
+  // HAY BOLETAS REALES DISPONIBLES
+  // =========================================================
   const fragment = document.createDocumentFragment();
 
   for (const number of DAILY) {
+
+    // Seguridad adicional:
+    // jamás renderizar algo que ALL no confirme como libre.
+    if (ALL[number] !== 'libre') {
+      continue;
+    }
+
     fragment.appendChild(
       makeTile(number, false)
     );
@@ -3795,6 +3839,7 @@ function pickDaily(force=false){
 async function syncMapFast(options = {}) {
   const force = options.force === true;
 
+  // No permitimos dos lecturas normales simultáneas.
   if (MAP_SYNC_RUNNING && !force) {
     return false;
   }
@@ -3802,226 +3847,265 @@ async function syncMapFast(options = {}) {
   MAP_SYNC_RUNNING = true;
 
   try {
-    const txt = await fetchRafflesCsv(12000);
+    // =========================================================
+    // 1. DESCARGAR SIEMPRE INFORMACIÓN ACTUAL
+    // =========================================================
+    const txt = await fetchRafflesCsv(15000);
     const rows = parseCSV(txt);
 
     if (!Array.isArray(rows) || rows.length < 2) {
       throw new Error(
-        `Respuesta incompleta: solamente llegaron ${rows?.length || 0} filas`
+        `Respuesta inválida: solamente llegaron ${rows?.length || 0} filas`
       );
     }
 
+    // =========================================================
+    // 2. ANALIZAR LAS 10.000 BOLETAS
+    // =========================================================
     const freeSet = new Set();
+    const numberSet = new Set();
 
     let validNumberRows = 0;
-    let recognizedStatusRows = 0;
-    let libreRows = 0;
-    let occupiedRows = 0;
+    let duplicateRows = 0;
 
-    /*
-     * No asumimos ciegamente que la primera fila es encabezado.
-     * Recorremos todas las filas y descartamos naturalmente el encabezado
-     * porque no contiene un número válido.
-     */
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i] || [];
 
-      const rawNumber = String(row[0] ?? '')
+      let rawNumber = String(row[0] ?? '')
         .replace(/^\uFEFF/, '')
         .trim();
 
-      const rawStatus = String(row[1] ?? '')
+      let rawStatus = String(row[1] ?? '')
         .replace(/^\uFEFF/, '')
         .trim()
-        .toLowerCase();
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
 
-      let digits = rawNumber.replace(/\D/g, '');
+      const digits = rawNumber.replace(/\D/g, '');
 
-      /*
-       * Solo se aceptan números de boleta entre 1 y 4 dígitos.
-       */
+      // Solo números reales de 0 a 9999
       if (!digits || digits.length > 4) {
         continue;
       }
 
-      const number = digits.padStart(4, '0');
+      const numericValue = Number(digits);
 
-      validNumberRows++;
-
-      if (rawStatus === 'libre') {
-        recognizedStatusRows++;
-        libreRows++;
-        freeSet.add(number);
+      if (
+        !Number.isInteger(numericValue) ||
+        numericValue < 0 ||
+        numericValue > 9999
+      ) {
         continue;
       }
 
-      if (
-        rawStatus === 'asignado' ||
-        rawStatus === 'ocupado' ||
-        rawStatus === 'apartado' ||
-        rawStatus === 'apartada'
-      ) {
-        recognizedStatusRows++;
-        occupiedRows++;
+      const number = String(numericValue).padStart(4, '0');
+
+      validNumberRows++;
+
+      if (numberSet.has(number)) {
+        duplicateRows++;
+      }
+
+      numberSet.add(number);
+
+      // =======================================================
+      // REGLA DE SEGURIDAD:
+      // ÚNICAMENTE el estado exacto "Libre" significa disponible.
+      //
+      // Cualquier otro estado:
+      // Asignado
+      // Apartado
+      // Ocupado
+      // Vendido
+      // vacío
+      // desconocido
+      // etc.
+      //
+      // se considera NO DISPONIBLE.
+      // =======================================================
+      if (rawStatus === 'libre') {
+        freeSet.add(number);
+      }
+    }
+
+    // =========================================================
+    // 3. VALIDACIÓN ESTRICTA DEL SNAPSHOT
+    // =========================================================
+
+    // Debemos tener exactamente los 10.000 números únicos:
+    // 0000 ... 9999
+    if (numberSet.size !== 10000) {
+      throw new Error(
+        `Lectura incompleta: se recibieron ${numberSet.size} ` +
+        `boletas únicas de 10000`
+      );
+    }
+
+    // Comprobación adicional: deben existir todos los números.
+    for (let i = 0; i < 10000; i++) {
+      const expected = String(i).padStart(4, '0');
+
+      if (!numberSet.has(expected)) {
+        throw new Error(
+          `Lectura incompleta: falta la boleta ${expected}`
+        );
       }
     }
 
     const freeList = Array.from(freeSet).sort();
 
-    console.log('Resultado de disponibilidad:', {
+    console.log('✅ Resultado REAL de disponibilidad:', {
       filasCSV: rows.length,
-      numerosValidos: validNumberRows,
-      estadosReconocidos: recognizedStatusRows,
-      libres: libreRows,
-      ocupados: occupiedRows
+      filasNumeroValidas: validNumberRows,
+      numerosUnicos: numberSet.size,
+      duplicados: duplicateRows,
+      libres: freeList.length,
+      ocupados: 10000 - freeList.length,
+      fecha: new Date().toLocaleString()
     });
 
-    /*
-     * Tu hoja contiene 10.000 números.
-     * Una respuesta con muy pocas filas es una descarga incompleta.
-     *
-     * Dejamos cierto margen para no depender exactamente de 10.001,
-     * pero nunca aceptamos una respuesta parcial de unas pocas filas.
-     */
-    if (validNumberRows < 9000) {
-      throw new Error(
-        `Descarga incompleta: se esperaban aproximadamente 10.000 boletas, ` +
-        `pero solamente llegaron ${validNumberRows}`
-      );
-    }
-
-    /*
-     * La mayoría de las filas deben contener un estado reconocible.
-     */
-    if (recognizedStatusRows < 9000) {
-      throw new Error(
-        `Estados incompletos: solamente se reconocieron ` +
-        `${recognizedStatusRows} de ${validNumberRows} boletas`
-      );
-    }
-
-    /*
-     * En tu situación actual deben existir 78 libres.
-     * Una respuesta con cero libres no debe aceptarse inmediatamente
-     * cuando todavía no existe una lista correcta cargada.
-     */
-    const previousFreeList =
-      LAST_VALID_FREE_LIST.length > 0
-        ? LAST_VALID_FREE_LIST
-        : Object.keys(ALL || {}).filter(
-            number => ALL[number] === 'libre'
-          );
-
-    if (freeList.length === 0) {
-      if (previousFreeList.length > 0) {
-        throw new Error(
-          'La consulta devolvió cero libres; se conserva la lista anterior'
-        );
-      }
-
-      /*
-       * En una primera carga, hacemos una segunda comprobación antes
-       * de aceptar que realmente no existen boletas libres.
-       */
-      if (!options.zeroConfirmed) {
-        console.warn(
-          'Primera lectura con cero libres. Se hará una comprobación adicional.'
-        );
-
-        MAP_SYNC_RUNNING = false;
-
-        await new Promise(resolve => setTimeout(resolve, 1200));
-
-        return syncMapFast({
-          force: true,
-          zeroConfirmed: true
-        });
-      }
-    }
-
-    /*
-     * La información solo se cambia después de superar
-     * todas las validaciones.
-     */
+    // =========================================================
+    // 4. ESTE RESULTADO YA ES AUTORITATIVO
+    //
+    // MUY IMPORTANTE:
+    // [] ES UN RESULTADO PERFECTAMENTE VÁLIDO.
+    // Significa que realmente existen 0 libres.
+    // =========================================================
+    HAS_VALID_AVAILABILITY = true;
     LAST_VALID_FREE_LIST = freeList.slice();
     LAST_MAP_SYNC_AT = Date.now();
 
+    // El caché puede almacenar incluso []
     saveMapCache(freeList);
+
+    // ALL parte con las 10.000 ocupadas y solamente
+    // marca como libres las que realmente llegaron como "Libre".
     setAllFromFreeList(freeList);
 
-    const previousDaily = DAILY.slice();
+    // =========================================================
+    // 5. QUITAR DEL CARRITO BOLETAS QUE YA NO ESTÉN LIBRES
+    // =========================================================
+    if (Array.isArray(CART_ITEMS) && CART_ITEMS.length) {
+      CART_ITEMS = CART_ITEMS.filter(
+        number => ALL[number] === 'libre'
+      );
 
-    /*
-     * Con 240 libres o menos se muestran absolutamente todos.
-     * En tu caso deben mostrarse las 78 boletas.
-     */
+      if (!CART_ITEMS.length) {
+        CART_ACTIVE = false;
+        document.body.classList.remove('cart-active');
+      }
+
+      renderCart();
+      updateTopFinishVisibility();
+    }
+
+    // =========================================================
+    // 6. ACTUALIZAR DAILY
+    // =========================================================
+    const previousDaily = Array.isArray(DAILY)
+      ? DAILY.slice()
+      : [];
+
+    // Si quedan 240 o menos, mostramos ABSOLUTAMENTE TODOS.
+    // Esto incluye correctamente:
+    //
+    // 0 libres  -> []
+    // 1 libre   -> [....]
+    // 3 libres  -> [....]
+    // 78 libres -> todas las 78
+    //
     if (freeList.length <= 240) {
       DAILY = freeList.slice();
     } else {
-      /*
-       * Conservamos los que continúen libres.
-       */
+      // Si hay más de 240, conservar solamente números
+      // que continúan realmente libres.
       DAILY = DAILY.filter(
         number => ALL[number] === 'libre'
       );
 
       if (DAILY.length === 0) {
-        DAILY = sampleDailyFromFreeList(freeList, 240);
+        DAILY = sampleDailyFromFreeList(
+          freeList,
+          240
+        );
+      } else if (DAILY.length < 240) {
+        // Completar la muestra hasta 240 sin repetir.
+        const existing = new Set(DAILY);
+
+        const candidates = freeList.filter(
+          number => !existing.has(number)
+        );
+
+        const missing = 240 - DAILY.length;
+
+        DAILY.push(
+          ...sampleDailyFromFreeList(
+            candidates,
+            missing
+          )
+        );
       }
     }
 
     persistDaily();
 
-    const changed =
-      previousDaily.length !== DAILY.length ||
-      previousDaily.some(
-        (number, index) => number !== DAILY[index]
-      );
+    // =========================================================
+    // 7. SIEMPRE REFLEJAR EL RESULTADO AUTORITATIVO
+    // =========================================================
+    renderGrid();
 
-    /*
-     * En primera carga también dibujamos aunque la comparación
-     * aparentemente no detecte cambios.
-     */
-    const wrap = document.getElementById('raffles');
-    const visibleNumbers = wrap
-      ? wrap.querySelectorAll('.raffle[data-num]').length
-      : 0;
-
-    if (changed || visibleNumbers === 0) {
-      renderGrid();
+    // Si hay búsqueda abierta también la actualizamos
+    if (
+      SEARCH_INPUT &&
+      SEARCH_INPUT.value &&
+      SEARCH_INPUT.value.trim()
+    ) {
+      rerenderSearch();
     }
 
     console.log(
-      `Disponibilidad cargada correctamente: ${freeList.length} libres`
+      `✅ Disponibilidad sincronizada: ${freeList.length} libres / ` +
+      `${10000 - freeList.length} no disponibles`
     );
 
     return true;
 
   } catch (error) {
+
     console.error(
-      'Error cargando disponibilidad:',
+      '❌ No fue posible validar la disponibilidad actual:',
       error
     );
 
-    /*
-     * Si ya existe una lista válida, se mantiene visible.
-     */
-    if (
-      LAST_VALID_FREE_LIST.length > 0 &&
-      DAILY.length === 0
-    ) {
-      setAllFromFreeList(LAST_VALID_FREE_LIST);
+    // =========================================================
+    // FAIL-CLOSED
+    //
+    // Si no podemos comprobar la información actual,
+    // NO mostramos números anteriores como si siguieran libres.
+    // =========================================================
+    HAS_VALID_AVAILABILITY = false;
 
-      DAILY =
-        LAST_VALID_FREE_LIST.length <= 240
-          ? LAST_VALID_FREE_LIST.slice()
-          : sampleDailyFromFreeList(
-              LAST_VALID_FREE_LIST,
-              240
-            );
+    ALL = makeBaseMap();
+    DAILY = [];
 
+    // También quitamos información antigua del carrito.
+    CART_ITEMS = [];
+    CART_ACTIVE = false;
+
+    document.body.classList.remove('cart-active');
+
+    try {
       persistDaily();
-      renderGrid();
+      renderCart();
+      updateTopFinishVisibility();
+    } catch (_) {}
+
+    // Quitamos visualmente cualquier boleta vieja.
+    const wrap = document.getElementById('raffles');
+
+    if (wrap) {
+      wrap.replaceChildren();
     }
 
     return false;
@@ -4218,42 +4302,97 @@ function showChoiceFromTile(tile, n){
   ov.onclick = ()=> closeBox(false);
   box.onclick=(e)=> e.stopPropagation();
 }
-function onTileTap(el, num, pt){
-  if(!el) return;
+async function onTileTap(el, num, pt) {
+  if (!el) return;
+
   const n = pad4(num);
 
-  // Deselección instantánea
-  if(CART_ITEMS.includes(n)){
+  // =========================================================
+  // DESELECCIÓN
+  // =========================================================
+  if (CART_ITEMS.includes(n)) {
     removeFromCart(n);
     msg('Removida del carrito: ' + n, false);
     el.dataset.busy = '';
     return;
   }
 
-  // Seguro de spam
-  if(el.dataset.busy === '1') return;
-
-  const st = ALL?.[n];
-  if(st && st !== 'libre'){
-    msg('Boleta ocupada', true);
+  if (el.dataset.busy === '1') {
     return;
   }
 
   el.dataset.busy = '1';
-  hideMsg();
 
-  // ✅ NUEVO EFECTO 100% NATIVO (Adiós lag y pantallas negras)
-  el.classList.add('tap-effect');
-  
-  // Quitamos el efecto después de 200 milisegundos (pura fluidez)
-  setTimeout(() => {
-    el.classList.remove('tap-effect');
+  try {
+
+    // =========================================================
+    // VALIDACIÓN EN TIEMPO REAL ANTES DE AGREGAR
+    // =========================================================
+    const updated = await syncMapFast({
+      force: true
+    });
+
+    if (!updated || !HAS_VALID_AVAILABILITY) {
+      console.warn(
+        `No fue posible validar la boleta ${n}`
+      );
+
+      return;
+    }
+
+    // Google Sheets es la autoridad.
+    if (ALL[n] !== 'libre') {
+
+      // Si cambió mientras estaba en pantalla,
+      // desaparece inmediatamente.
+      DAILY = DAILY.filter(
+        number => number !== n
+      );
+
+      LAST_VALID_FREE_LIST =
+        LAST_VALID_FREE_LIST.filter(
+          number => number !== n
+        );
+
+      persistDaily();
+      renderGrid();
+
+      console.log(
+        `Boleta ${n} retirada: ya no está libre`
+      );
+
+      return;
+    }
+
+    // =========================================================
+    // CONFIRMADA COMO LIBRE
+    // =========================================================
+    hideMsg();
+
+    el.classList.add('tap-effect');
+
+    setTimeout(() => {
+      el.classList.remove('tap-effect');
+    }, 200);
+
+    addToCart(n);
+
+    msg(
+      'Agregado al carrito: ' + n,
+      false
+    );
+
+  } catch (error) {
+
+    console.error(
+      `Error validando boleta ${n}:`,
+      error
+    );
+
+  } finally {
+
     el.dataset.busy = '';
-  }, 200); 
-    
-  // Lo enviamos directo al carrito
-  addToCart(n);
-  msg('Agregado al carrito: ' + n, false);
+  }
 }
 
 /* =========================
@@ -4379,12 +4518,47 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     layer.style.display='none'; layer.innerHTML='';
     document.body.classList.add('search-has-text');
 
-    if(!ALL || !Object.keys(ALL).length){
-      const c=loadMapCache(); if(c?.freeList){ setAllFromFreeList(c.freeList); }
-      else { await syncMapFast(); }
-    }
-    const libres=Object.keys(ALL||{}).filter(k=>ALL[k]==='libre');
-    const chosen = libres.length ? libres[randInt(libres.length)] : String(randInt(10000)).padStart(4,'0');
+    // Obtener información ACTUAL antes de seleccionar
+const updated = await syncMapFast({
+  force: true
+});
+
+if (!updated || !HAS_VALID_AVAILABILITY) {
+  randomBtn.dataset.busy = '';
+
+  clearSearchLayer();
+
+  document.body.classList.remove(
+    'search-has-text'
+  );
+
+  console.warn(
+    'No fue posible validar disponibilidad.'
+  );
+
+  return;
+}
+
+const libres = Object.keys(ALL || {})
+  .filter(number => ALL[number] === 'libre');
+
+// Jamás inventar una boleta.
+if (libres.length === 0) {
+  randomBtn.dataset.busy = '';
+
+  clearSearchLayer();
+
+  document.body.classList.remove(
+    'search-has-text'
+  );
+
+  renderGrid();
+
+  return;
+}
+
+const chosen =
+  libres[randInt(libres.length)];
 
     const placeholder=document.createElement('div'); placeholder.className='raffle large-raffle'; layer.appendChild(placeholder); layer.style.display='flex';
 
@@ -4435,55 +4609,33 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   }
 
   // ARRANQUE EXPRESS (con boot)
-  bootSet(60, 'Cargando boletas…', 'Usando caché para abrir ultra rápido');
-  DAY_MARK=todayKey();
-
-  const mcache = loadMapCache();
-
-if (
-  mcache?.freeList &&
-  Array.isArray(mcache.freeList) &&
-  mcache.freeList.length > 0
-) {
-  LAST_VALID_FREE_LIST = mcache.freeList.slice();
-
-  setAllFromFreeList(mcache.freeList);
-
-  DAILY =
-    mcache.freeList.length <= 240
-      ? mcache.freeList.slice()
-      : sampleDailyFromFreeList(
-          mcache.freeList,
-          240
-        );
-
-  persistDaily();
-  renderGrid();
-
   bootSet(
-    82,
-    'Sincronizando disponibilidad…',
-    'Actualizando datos en segundo plano'
-  );
+  60,
+  'Cargando boletas…',
+  'Preparando consulta de disponibilidad'
+);
 
-  setTimeout(
-    () => syncMapFast(),
-    mcache.stale ? 0 : 1500
-  );
+  // =========================================================
+// DISPONIBILIDAD AUTORITATIVA AL INICIAR
+// =========================================================
 
-} else {
-  /*
-   * No utilizamos cachés vacíos.
-   */
-  try {
-    localStorage.removeItem(MAP_CACHE_KEY);
-    localStorage.removeItem(dailyKey());
-  } catch (_) {}
+// El caché NO se utiliza para afirmar que una boleta
+// continúa disponible.
+//
+// Preferimos esperar la lectura real de Google Sheets
+// antes de enseñar un número al cliente.
 
-  const wrap = document.getElementById('raffles');
+HAS_VALID_AVAILABILITY = false;
+LAST_VALID_FREE_LIST = [];
+ALL = makeBaseMap();
+DAILY = [];
+
+const wrap = document.getElementById('raffles');
+
+if (wrap) {
   const fragment = document.createDocumentFragment();
 
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < 18; i++) {
     const skeleton = document.createElement('div');
     skeleton.className = 'raffle';
     skeleton.innerHTML = '<span>----</span>';
@@ -4491,28 +4643,35 @@ if (
   }
 
   wrap.replaceChildren(fragment);
+}
 
-  bootSet(
-    72,
-    'Descargando disponibilidad…',
-    'Leyendo las 10.000 boletas'
+bootSet(
+  72,
+  'Consultando disponibilidad…',
+  'Verificando las 10.000 boletas'
+);
+
+// Primera lectura autoritativa
+let updated = await syncMapFast({
+  force: true
+});
+
+// Un segundo intento solamente si hubo
+// un problema técnico con la consulta.
+if (!updated) {
+  await new Promise(
+    resolve => setTimeout(resolve, 1000)
   );
 
-  let updated = await syncMapFast();
+  updated = await syncMapFast({
+    force: true
+  });
+}
 
-  /*
-   * Segundo intento inmediato si la primera descarga fue incompleta.
-   */
-  if (!updated) {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    updated = await syncMapFast({ force: true });
-  }
-
-  if (!updated) {
-    console.error(
-      'No fue posible obtener una respuesta completa de las 10.000 boletas.'
-    );
-  }
+if (!updated) {
+  console.error(
+    '❌ No fue posible comprobar la disponibilidad actual.'
+  );
 }
   setTimeout(()=> bootHide(), 220);
 
@@ -4555,8 +4714,32 @@ MAP_TIMER = setInterval(async () => {
 
   await syncMapFast();
 
-}, 30000);
+}, 10000);
+
+
+// =========================================================
+// ACTUALIZAR INMEDIATAMENTE AL REGRESAR A LA PÁGINA
+// =========================================================
+
+window.addEventListener('focus', () => {
+  if (!MAP_SYNC_RUNNING) {
+    syncMapFast({ force: true });
+  }
 });
-  </script>
+
+document.addEventListener('visibilitychange', () => {
+  if (
+    !document.hidden &&
+    !MAP_SYNC_RUNNING
+  ) {
+    syncMapFast({ force: true });
+  }
+});
+
+
+// AQUÍ CIERRA DOMContentLoaded
+});
+
+</script>
 </body>
 </html>
